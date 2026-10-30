@@ -65,7 +65,7 @@ button{font:700 16px var(--display);letter-spacing:.02em;color:#03233a;backgroun
 button:hover{transform:translateY(-2px)}
 button:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
 .muted{font-size:13px;color:var(--mist)}
-#dead h2{margin:0;font:800 clamp(28px,5vw,40px)/1.1 var(--display);text-wrap:balance}
+#dead h2,#pause h2{margin:0;font:800 clamp(28px,5vw,40px)/1.1 var(--display);text-wrap:balance}
 #dead .cause{color:var(--mist);font-size:16px;margin:0}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}
 .stats div{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:12px;padding:10px 6px}
@@ -137,8 +137,9 @@ body.touch #minibox{top:calc(128px + env(safe-area-inset-top,0px));left:calc(14p
 body.touch #mini{width:150px;height:50px}
 body.touch .hbtn{left:auto;right:calc(182px + env(safe-area-inset-right,0px));width:34px;height:34px;font-size:15px}
 body.touch #minibox:not([hidden]){display:block}
+body.touch .pbtn{left:auto;right:calc(222px + env(safe-area-inset-right,0px));width:34px;height:34px}
 body.touch #tip{bottom:auto;top:calc(52px + env(safe-area-inset-top,0px));font-size:13px;padding:8px 12px;max-width:min(460px,calc(100vw - 380px))}
-@media (orientation:portrait){body.touch .hbtn{right:auto;left:calc(14px + env(safe-area-inset-left,0px));top:calc(196px + env(safe-area-inset-top,0px))}body.touch #tip{top:calc(200px + env(safe-area-inset-top,0px));max-width:calc(100vw - 32px)}body.touch #feed{top:calc(150px + env(safe-area-inset-top,0px));max-width:calc(100vw - 200px);left:auto;right:16px;transform:none;align-items:flex-end}}
+@media (orientation:portrait){body.touch .hbtn{right:auto;left:calc(14px + env(safe-area-inset-left,0px));top:calc(196px + env(safe-area-inset-top,0px))}body.touch .pbtn{left:calc(56px + env(safe-area-inset-left,0px))}body.touch #tip{top:calc(200px + env(safe-area-inset-top,0px));max-width:calc(100vw - 32px)}body.touch #feed{top:calc(150px + env(safe-area-inset-top,0px));max-width:calc(100vw - 200px);left:auto;right:16px;transform:none;align-items:flex-end}}
 body.touch #feed div{font-size:11px;padding:2px 8px}
 body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100vw - 380px)}
 .touchonly{display:none}body.touch .touchonly{display:block}body.touch .deskonly{display:none}
@@ -155,7 +156,15 @@ body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100
   .card{gap:10px}
   h1{font-size:clamp(40px,12vw,72px)}
 }
-@media (max-width:700px){.hbtn{left:auto;right:calc(186px + env(safe-area-inset-right,0px))}#hud{width:200px;padding:10px}#board{width:160px}#minibox,#keys{display:none}.stats{grid-template-columns:repeat(2,1fr)}}
+.pbtn{left:calc(348px + env(safe-area-inset-left,0px))}.pbtn svg{width:16px;height:16px}
+.menu{display:flex;flex-direction:column;gap:10px;align-items:center;width:100%}
+.menu button{width:min(300px,100%);box-sizing:border-box}
+.menu button small{display:block;font:500 12px var(--body);color:inherit;opacity:.75;margin-top:3px;letter-spacing:0}
+.btn2{background:rgba(255,255,255,.06);color:var(--foam);box-shadow:none;border:1px solid var(--line)}
+#netNote{font-size:13px;color:var(--amber);background:rgba(255,199,90,.1);border:1px solid rgba(255,199,90,.3);border-radius:10px;padding:8px 12px}
+#pause{z-index:18}
+#pause .card{background:rgba(5,28,48,.94);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:380px}
+@media (max-width:700px){.hbtn{left:auto;right:calc(186px + env(safe-area-inset-right,0px))}.pbtn{left:auto;right:calc(232px + env(safe-area-inset-right,0px))}#hud{width:200px;padding:10px}#board{width:160px}#minibox,#keys{display:none}.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 
 <canvas id="c"></canvas>
@@ -183,6 +192,7 @@ body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100
 </div>
 <div id="keys" hidden>Мышь или стрелки — плыть · Пробел или щелчок — рывок · H — подсказки</div>
 <button id="helpBtn" class="hbtn" hidden aria-label="Как играть" title="Как играть (H)">?</button>
+<button id="pauseBtn" class="hbtn pbtn" hidden aria-label="Пауза" title="Пауза (Esc или P)"><svg viewBox="0 0 16 16"><rect x="3" y="2" width="3.5" height="12" rx="1" fill="#03233a"/><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="#03233a"/></svg></button>
 <div id="minibox" class="panel" hidden><canvas id="mini" width="432" height="144"></canvas></div>
 
 <div id="start" class="ov">
@@ -194,9 +204,14 @@ body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100
       <span><i class="dot" style="background:#ff6b57"></i>жучки и рыбы — путь хищника</span>
     </div>
     <input id="nick" maxlength="16" placeholder="Имя рыбы" aria-label="Имя рыбы">
-    <button id="go">Плыть</button>
-    <button id="helpStart" class="helpline">Как играть</button>
-    <div class="muted deskonly">Мышь или стрелки — плыть · Пробел или щелчок — рывок · H — подсказки · Enter — старт</div>
+    <div class="menu">
+      <button id="cont" hidden>Продолжить<small id="contInfo"></small></button>
+      <button id="go">Одиночная игра</button>
+      <button id="net" class="btn2">Сетевая игра</button>
+      <div id="netNote" hidden>Сетевая игра в разработке. Скоро можно будет плавать вместе с друзьями.</div>
+      <button id="helpStart" class="helpline">Как играть</button>
+    </div>
+    <div class="muted deskonly">Мышь или стрелки — плыть · Пробел или щелчок — рывок · Esc — пауза · H — подсказки</div>
     <div class="muted touchonly">Палец слева — джойстик · большая кнопка справа — рывок · «?» — подсказки. Удобнее держать телефон горизонтально.</div>
     <div class="muted" id="recline"></div>
   </div>
@@ -229,6 +244,7 @@ body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100
           <li><b>Рывок:</b> большая кнопка справа внизу или касание вторым пальцем в любом месте экрана. Кольцо на кнопке показывает перезарядку.</li>
           <li><b>Торпеда, разряд, чернила:</b> маленькие кнопки над рывком, появляются после нужной эволюции.</li>
           <li><b>Эволюция:</b> нажмите на карточку.</li>
+          <li><b>Пауза:</b> кнопка с двумя полосками вверху. Оттуда можно выйти в меню — игра сохранится.</li>
           <li>Горизонтально держать удобнее: видно больше моря.</li>
         </ul>
       </section>
@@ -242,7 +258,8 @@ body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100
           <span><kbd>Q</kbd></span><span>Электрический разряд (нужен «Электроорган»).</span>
           <span><kbd>R</kbd></span><span>Облако чернил (нужен «Чернильный мешок»).</span>
           <span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></span><span>Выбор эволюции, когда открылось окно.</span>
-          <span><kbd>H</kbd> <kbd>Esc</kbd></span><span>Открыть и закрыть эту справку. Пока она открыта, игра на паузе.</span>
+          <span><kbd>Esc</kbd> <kbd>P</kbd></span><span>Пауза: продолжить, справка или выйти в меню с сохранением.</span>
+          <span><kbd>H</kbd></span><span>Открыть и закрыть эту справку. Пока она открыта, игра на паузе.</span>
         </div>
       </section>
       <section>
@@ -287,6 +304,19 @@ body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100
         <div class="evos" id="helpEvos"></div>
       </section>
     </div>
+  </div>
+</div>
+
+<div id="pause" class="ov" hidden>
+  <div class="card" role="dialog" aria-labelledby="pauseT">
+    <h2 id="pauseT">Пауза</h2>
+    <p class="muted" id="pauseInfo"></p>
+    <div class="menu">
+      <button id="pResume">Продолжить</button>
+      <button id="pHelp" class="btn2">Как играть</button>
+      <button id="pExit" class="btn2">Сохранить и выйти в меню</button>
+    </div>
+    <div class="muted">Игра сама сохраняется каждые 10 секунд и при закрытии вкладки. Сохранение пропадает, когда рыбу съедают.</div>
   </div>
 </div>
 
@@ -639,10 +669,12 @@ addEventListener('keydown',e=>{const k=e.key;const kl=k.toLowerCase();
   if((kl==='h'||kl==='р')&&document.activeElement!==$('nick')){toggleHelp();return}
   if(k==='Escape'&&!$('help').hidden){toggleHelp(false);return}
   if(!$('help').hidden)return;
+  if((k==='Escape'||((kl==='p'||kl==='з')&&document.activeElement!==$('nick')))&&state==='play'){togglePause();return}
+  if(!$('pause').hidden)return;
   if(k===' '){e.preventDefault();if(state==='play')pDash()}
   if(state==='play'&&player&&player.alive&&document.activeElement!==$('nick')){if(kl==='e'||kl==='у')pAct('torpedo');if(kl==='q'||kl==='й')pAct('shock');if(kl==='r'||kl==='к')pAct('ink')}
   if(!$('evo').hidden&&['1','2','3'].includes(k)){const b=$('evoC').children[+k-1];if(b)b.click()}
-  if(k==='Enter'&&(state==='menu'||state==='dead')&&$('help').hidden)startGame()});
+  if(k==='Enter'&&(state==='menu'||state==='dead')&&$('help').hidden){if(state==='menu'&&loadSave())continueGame();else startGame()}});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
 cv.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;mouse.on=true;useKeys=false});
 cv.addEventListener('mousedown',e=>{if(state==='play'&&player){if(e.button===0)pDash();if(e.button===2)pAct('torpedo')}});
@@ -717,19 +749,48 @@ function startGame(){
   let best=null,bs=-1;for(let i=0;i<12;i++){const p=weeds[Math.random()*weeds.length|0];const x=p.x+rand(-p.w*.4,p.w*.4),y=ground(x)-p.h*rand(.3,.7);let dmin=1e9;for(const f of fish)if(f.alive&&ty(f)!=='h'&&f.L>1)dmin=Math.min(dmin,Math.hypot(f.x-x,f.y-y));if(dmin>bs){bs=dmin;best=[x,y]}}
   player=mkFish({name:nm,x:best[0],y:best[1],L:1,protect:5});toggleHelp(false);wasKing=false;joy.on=false;
   if(isTouch){try{const de=document.documentElement;if(!document.fullscreenElement&&de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'}).catch(()=>{})}catch(e){}}player.hueOff=0;fish.push(player);spect=null;maxL=1;
-  state='play';$('start').hidden=true;$('dead').hidden=true;['hud','board','minibox','keys','helpBtn'].forEach(i=>$(i).hidden=false);
-  evoQueue.length=0;closeEvo();cam.x=player.x;cam.y=player.y;
+  clearSave();enterPlay();
   setTimeout(()=>tip(isTouch?'Ведите пальцем по экрану — это джойстик. Ешьте зелёное и красное: что едите чаще, тем и станете':'Ешьте зелёные водоросли и красных жучков. Что едите чаще — тем и станете. Справка — кнопка «?» или H'),600)}
-function playerDie(by,cause){state='dying';deadT=0;spect=by&&by.alive?by:null;closeEvo();
+function playerDie(by,cause){clearSave();state='dying';deadT=0;spect=by&&by.alive?by:null;closeEvo();
   const life=now-player.born;deathInfo={by:by?by.name:null,byL:by?by.L:0,cause,L:maxL,t:life,kills:player.kills,place:player.bestPlace};
   let nr=false;if(maxL>rec.L){rec.L=maxL;nr=true}if(life>rec.t){rec.t=life;nr=true}saveRec();deathInfo.nr=nr}
-function showDead(){state='dead';const d=deathInfo;['hud','board','minibox','keys','abil','helpBtn','tbtns'].forEach(i=>$(i).hidden=true);joy.on=false;
+function showDead(){state='dead';const d=deathInfo;['hud','board','minibox','keys','abil','helpBtn','tbtns','pauseBtn'].forEach(i=>$(i).hidden=true);joy.on=false;updMenu();
   $('dtitle').textContent=d.cause==='net'?'Вас поймали сетью':d.cause==='hunger'?'Вы умерли от голода':'Вас съели';
   $('dcause').textContent=d.cause==='eaten'?`Вас проглотил(а) «${d.by}» (ур. ${d.byL})`:d.cause==='net'?'Сеть ловит только крупных — в следующий раз уплывайте в сторону':'Сытость кончилась, и вы похудели до конца';
   $('sLvl').textContent=d.L;$('sTime').textContent=fmtT(d.t);$('sKills').textContent=d.kills;$('sPlace').textContent=d.place<99?d.place:'—';
   $('drec').innerHTML=d.nr?'<span class="rec">Новый рекорд!</span> Уровень '+rec.L+' · '+fmtT(rec.t):`Рекорд: ${rec.L} уровень · ${fmtT(rec.t)}`;
   $('dead').hidden=false;recLine();setTimeout(()=>$('again').focus(),50)}
-$('go').onclick=startGame;$('again').onclick=startGame;
+$('go').onclick=startGame;$('again').onclick=startGame;$('cont').onclick=()=>continueGame();
+$('net').onclick=()=>{$('netNote').hidden=!$('netNote').hidden};
+$('pauseBtn').onclick=()=>togglePause(true);$('pResume').onclick=()=>togglePause(false);$('pHelp').onclick=()=>toggleHelp(true);$('pExit').onclick=()=>exitToMenu();
+
+// ───────── сохранение одиночной игры ─────────
+const SAVE='malek-save';let saveT=10;
+const snapFish=f=>({name:f.name,bot:f.bot,x:Math.round(f.x),y:Math.round(f.y),L:f.L,xp:+f.xp.toFixed(2),herb:+f.herb.toFixed(1),meat:+f.meat.toFixed(1),hunger:+f.hunger.toFixed(3),evo:f.evo,bias:+(f.bias||0).toFixed(2),hueOff:Math.round(f.hueOff),pat:f.pat,kills:f.kills,ang:+f.ang.toFixed(2)});
+function saveGame(){if(state!=='play'||!player||!player.alive)return;try{localStorage.setItem(SAVE,JSON.stringify({v:1,t:Date.now(),played:now-player.born,best:player.bestPlace,maxL,p:snapFish(player),bots:fish.filter(f=>f!==player&&f.alive).map(snapFish)}))}catch(e){}}
+function loadSave(){try{const d=JSON.parse(localStorage.getItem(SAVE)||'null');return d&&d.v===1&&d.p?d:null}catch(e){return null}}
+function clearSave(){try{localStorage.removeItem(SAVE)}catch(e){}}
+function restoreFish(o){const f=mkFish({name:o.name,bot:o.bot,x:o.x,y:o.y,L:1});Object.assign(f,{L:clamp(o.L|0,1,MAXL),xp:o.xp||0,herb:o.herb||2,meat:o.meat||2,hunger:o.hunger??1,evo:o.evo||{},bias:o.bias||0,hueOff:o.hueOff||0,pat:o.pat||0,kills:o.kills||0,ang:o.ang||0});
+  f.r=baseR(f.L);f.hue=128-125*mf(f)+f.hueOff;f.rollT=f.roll=Math.cos(f.ang)>=0?1:-1;f.wx=f.x;f.wy=f.y;return f}
+function updMenu(){const d=loadSave();$('cont').hidden=!d;$('go').textContent=d?'Новая игра':'Одиночная игра';$('go').classList.toggle('btn2',!!d);
+  if(d){const m=d.p.meat/(d.p.meat+d.p.herb),t=m<.36?'h':m>.64?'c':'o',ago=Math.max(0,Math.round((Date.now()-d.t)/60000));
+    $('contInfo').textContent=`${d.p.name} · ${d.p.L} уровень · ${TYPEN[t]} · ${ago<1?'только что':ago<60?ago+' мин назад':ago<1440?Math.round(ago/60)+' ч назад':Math.round(ago/1440)+' дн назад'}`}}
+function continueGame(){const d=loadSave();if(!d){startGame();return}
+  fish.length=0;respawnQ.length=0;shots.length=0;clouds.length=0;
+  for(const o of d.bots||[])fish.push(restoreFish(o));
+  player=restoreFish(d.p);player.bot=false;player.protect=3;player.born=now-(d.played||0);player.bestPlace=d.best||99;fish.push(player);
+  while(fish.length<BOTS+1)spawnBot(botLevel(true));
+  maxL=Math.max(d.maxL||1,player.L);toggleHelp(false);wasKing=false;joy.on=false;spect=null;
+  if(isTouch){try{const de=document.documentElement;if(!document.fullscreenElement&&de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'}).catch(()=>{})}catch(e){}}
+  enterPlay();updChips();setTimeout(()=>tip('С возвращением! Первые 3 секунды вас нельзя съесть',true),400)}
+function enterPlay(){state='play';$('start').hidden=true;$('dead').hidden=true;$('pause').hidden=true;$('netNote').hidden=true;syncPause();
+  ['hud','board','minibox','keys','helpBtn','pauseBtn'].forEach(i=>$(i).hidden=false);evoQueue.length=0;closeEvo();cam.x=player.x;cam.y=player.y;saveT=10}
+function exitToMenu(){saveGame();const i=fish.indexOf(player);if(i>=0)fish.splice(i,1);player=null;state='menu';spect=null;
+  ['hud','board','minibox','keys','abil','helpBtn','pauseBtn','tbtns','pause'].forEach(i=>$(i).hidden=true);joy.on=false;closeEvo();syncPause();
+  updMenu();recLine();tipQ.length=0;tipT=0;$('tip').classList.remove('on');$('start').hidden=false;setTimeout(()=>$('cont').focus(),30)}
+addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play'){saveGame();if($('pause').hidden&&$('help').hidden)togglePause(true)}});
+addEventListener('pagehide',()=>saveGame());
+updMenu();
 
 // ───────── справка ─────────
 let paused=false;
@@ -737,7 +798,10 @@ function helpNow(){const el=$('helpNow');if(!player||!player.alive||state!=='pla
   const f=player,t=ty(f);let d;if(hasDash(f))d=`Рывок у вас <b>есть</b>${f.evo.jet?' (с ускорителем: дальше, перезарядка 2,2 с)':''}. ${isTouch?'Большая кнопка справа внизу или касание вторым пальцем.':'Пробел или левая кнопка мыши.'}`;
   else d=t==='c'?`Рывок откроется на <b>4 уровне</b> — вы уже хищник.`:`Рывка пока <b>нет</b>. Он появится, если стать хищником (больше красной еды) и дорасти до 4 уровня, или с эволюцией «Ракетный ускоритель».`;
   const ev=Object.keys(f.evo).map(k=>EVO[k].n);el.innerHTML=`Сейчас вы — <b>${TYPEN[t]}</b>, ${f.L} уровень. ${d}${ev.length?'<br>Ваши эволюции: '+ev.join(', ')+'.':''}`}
-function toggleHelp(on){const h=$('help');on=on===undefined?h.hidden:on;if(on){helpNow();h.hidden=false;paused=true;setTimeout(()=>$('helpClose').focus(),30)}else{h.hidden=true;paused=false}}
+function syncPause(){paused=!$('help').hidden||!$('pause').hidden}
+function toggleHelp(on){const h=$('help');on=on===undefined?h.hidden:on;if(on){helpNow();h.hidden=false;setTimeout(()=>$('helpClose').focus(),30)}else{h.hidden=true;if(!$('pause').hidden)setTimeout(()=>$('pResume').focus(),30)}syncPause()}
+function togglePause(on){const P=$('pause');on=on===undefined?P.hidden:on;if(on&&state!=='play')return;
+  if(on){const f=player;$('pauseInfo').textContent=f?`${f.name} · ${f.L} уровень · ${TYPEN[ty(f)]} · в игре ${fmtT(now-f.born)}`:'';P.hidden=false;saveGame();setTimeout(()=>$('pResume').focus(),30)}else P.hidden=true;joy.on=false;syncPause()}
 $('helpEvos').innerHTML=Object.keys(EVO).map(k=>{const e=EVO[k],tg=e.f.length===3?'все':e.f.split('').map(c=>({h:'травоядная',o:'всеядная',c:'хищник'})[c]).join(', ');return `<div><svg viewBox="0 0 52 52">${I[k]}</svg><p style="margin:0"><b>${e.n}</b><span>${e.d}</span><br><span class="tag2">${tg}</span></p></div>`}).join('');
 $('helpBtn').onclick=()=>toggleHelp(true);$('helpStart').onclick=()=>toggleHelp(true);$('helpClose').onclick=()=>toggleHelp(false);$('abil').onclick=()=>toggleHelp(true);
 $('help').addEventListener('click',e=>{if(e.target.id==='help')toggleHelp(false)});
@@ -773,11 +837,12 @@ function update(dt,rdt){
   for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.94;p.vy*=.94;p.life-=dt}for(let i=parts.length-1;i>=0;i--)if(parts[i].life<=0)parts.splice(i,1);
   for(const p of pops){p.y-=22*rdt;p.life-=rdt}for(let i=pops.length-1;i>=0;i--)if(pops[i].life<=0)pops.splice(i,1);
   if(tipT>0){tipT-=rdt;if(tipT<=0){$('tip').classList.remove('on');if(tipQ.length)setTimeout(()=>{if(tipQ.length)showTip(tipQ.shift())},450)}}
+  if(state==='play'&&player&&!paused){saveT-=rdt;if(saveT<=0){saveT=10;saveGame()}}
   if(state==='play'&&player){maxL=Math.max(maxL,player.L);
     if(player.hunger<.25)tip('Голод! Ешьте скорее, иначе начнёте худеть и уменьшаться');
     if(player.hidden&&player.L<6)tip('В водорослях вас не видят — пока вы мелкая');
     if(!evoOpen&&evoQueue.length)openEvo(evoQueue.shift());}
-  if(evoOpen){evoT-=rdt;$('evoBar').style.width=(evoT/14*100)+'%';if(evoT<=0){const b=$('evoC').children[Math.random()*$('evoC').children.length|0];if(b)b.click();else closeEvo()}}
+  if(evoOpen&&!paused){evoT-=rdt;$('evoBar').style.width=(evoT/14*100)+'%';if(evoT<=0){const b=$('evoC').children[Math.random()*$('evoC').children.length|0];if(b)b.click();else closeEvo()}}
   if(state==='dying'){deadT+=rdt;if(deadT>2.4)showDead()}
   camUpdate(rdt);
   boardT-=rdt;if(boardT<=0){boardT=.4;updBoard()}
