@@ -472,14 +472,19 @@ function mkFish(o){const f={id:++uid,name:o.name,bot:!!o.bot,x:o.x,y:o.y,vx:0,vy
 function botEvo(f){const a=allowedEvos(f);if(a.length)f.evo[a[Math.random()*a.length|0]]=1}
 function spawnBot(L){let x,y,tries=0;do{x=rand(200,W-200);y=rand(150,ground(x)-120);tries++}while(player&&player.alive&&Math.hypot(x-player.x,y-player.y)<900&&tries<20);
   const b=mkFish({name:freeName(),bot:true,x,y,L,bias:rand(-1,1)});fish.push(b);return b}
-function botLevel(initial){const k=Math.random();if(initial)return k<.48?1+(Math.random()*6|0):k<.74?7+(Math.random()*9|0):k<.9?16+(Math.random()*10|0):k<.98?26+(Math.random()*10|0):36+(Math.random()*5|0);
-  return k<.8?1+(Math.random()*3|0):4+(Math.random()*6|0)}
+// море «растёт» вместе с игроком: боты не бывают крупнее игрока больше чем на 8 уровней (но до 20-го — всегда можно)
+const BOT_LEAD=8,BOT_FLOOR=20;
+function botCap(){const pl=player&&player.alive?Math.max(player.L,state==='play'?maxL:1):1;return clamp(pl+BOT_LEAD,BOT_FLOOR,MAXL)}
+function botLevel(initial){const k=Math.random(),cap=botCap();let L;
+  if(initial)L=k<.55?1+(Math.random()*5|0):k<.85?6+(Math.random()*7|0):13+(Math.random()*(cap-12)|0);
+  else L=k<.8?1+(Math.random()*3|0):4+(Math.random()*6|0);
+  return Math.min(L,cap)}
 const BOTS=52;for(let i=0;i<BOTS;i++)spawnBot(botLevel(true));
 
 // скорость в мире растёт с размером, на экране крупная рыба всё равно медленнее
 function maxSpeed(f){return 200*Math.pow(f.r/8,0.36)*(f.evo.fins?1.15:1)*(f.evo.shell?.92:1)*(f.hunger<=0?0.85:1)*(f.boost>0?1.6:1)}
 
-function gain(f,x){f.xp+=x;while(f.L<MAXL&&f.xp>=need(f.L)){f.xp-=need(f.L);f.L++;onLevel(f)}if(f.L>=MAXL)f.xp=Math.min(f.xp,need(MAXL)*0.999)}
+function gain(f,x){const top=f.bot?botCap():MAXL;f.xp+=x;while(f.L<top&&f.xp>=need(f.L)){f.xp-=need(f.L);f.L++;onLevel(f)}if(f.L>=top)f.xp=Math.min(f.xp,need(f.L)*0.999)}
 function lose(f,x){f.xp-=x;while(f.xp<0){if(f.L>1){f.L--;f.xp+=need(f.L)}else{f.xp=0;return true}}return false}
 function onLevel(f){const ms=f.L%5===0&&f.L<=45;
   if(f===player&&!f.bot){S.level();pop(f.x,f.y-f.r*1.6,'Уровень '+f.L,'#bff3ff',18);
@@ -782,8 +787,12 @@ recLine();try{$('nick').value=localStorage.getItem('malek-name')||''}catch(e){}
 
 // ───────── старт и смерть ─────────
 let deadT=0,deathInfo=null,maxL=1;
+// новая одиночная игра — свежее море: все рыбы не крупнее 20 уровня
+function resetSea(){const keep=player;fish.length=0;respawnQ.length=0;shots.length=0;clouds.length=0;net=null;netTimer=rand(40,60);
+  player=null;for(let i=0;i<BOTS;i++)spawnBot(botLevel(true));player=keep;if(player)fish.push(player)}
 function startGame(){
   const nm=($('nick').value||'').trim().slice(0,16)||'Малёк';try{localStorage.setItem('malek-name',nm)}catch(e){}
+  {const i=player?fish.indexOf(player):-1;if(i>=0)fish.splice(i,1)}player=null;resetSea();
   // малёк рождается в маленьком гроте подальше от хищников
   let best=null,bs=-1;for(const sh of shelters){if(sh.gap>24)continue;let dmin=1e9;for(const f of fish)if(f.alive&&ty(f)!=='h'&&f.L>1)dmin=Math.min(dmin,Math.hypot(f.x-sh.x,f.y-sh.cy));if(dmin>bs){bs=dmin;best=[sh.x+rand(-sh.A*.3,sh.A*.3),sh.cy]}}
   player=mkFish({name:nm,x:best[0],y:best[1],L:1,protect:8});toggleHelp(false);wasKing=false;joy.on=false;
@@ -819,6 +828,7 @@ function continueGame(){const d=loadSave();if(!d){startGame();return}
   for(const o of d.bots||[])fish.push(restoreFish(o));
   player=restoreFish(d.p);player.bot=false;player.protect=3;player.born=now-(d.played||0);player.bestPlace=d.best||99;fish.push(player);
   while(fish.length<BOTS+1)spawnBot(botLevel(true));
+  {const cap=botCap();for(const f of fish)if(f.bot&&f.L>cap){f.L=cap;f.xp=0;f.r=baseR(cap)}}
   maxL=Math.max(d.maxL||1,player.L);toggleHelp(false);wasKing=false;joy.on=false;spect=null;
   if(isTouch){try{const de=document.documentElement;if(!document.fullscreenElement&&de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'}).catch(()=>{})}catch(e){}}
   enterPlay();updChips();setTimeout(()=>tip('С возвращением! Первые 3 секунды вас нельзя съесть',true),400)}
@@ -856,7 +866,7 @@ function closeEvo(){evoOpen=false;timeScale=1;$('evo').hidden=true}
 function updChips(){if(!player)return;$('chips').innerHTML=Object.keys(player.evo).map(k=>`<span>${EVO[k].n}</span>`).join('')}
 
 // ───────── обновление ─────────
-let boardT=0,hudT=0,miniT=0,jellies=[];
+let ageT=4,boardT=0,hudT=0,miniT=0,jellies=[];
 function update(dt,rdt){
   if(state==='play')playerControl();
   jellies=foods.filter(fd=>fd.t==='jelly');
@@ -869,6 +879,9 @@ function update(dt,rdt){
     updFish(f,dt)}
   updFood(dt);eatFoods();bites();updNet(dt);updAbilities(dt);
   for(let i=fish.length-1;i>=0;i--)if(!fish[i].alive)fish.splice(i,1);
+  // старость: у потолка уровней не больше 5 рыб, лишние (вне экрана) уплывают, вместо них появляются мальки
+  ageT-=dt;if(ageT<=0){ageT=4;const cap=botCap(),top=fish.filter(f=>f.bot&&f.alive&&f!==player&&f.L>=cap-2&&(f.x<vx0-200||f.x>vx1+200||f.y<vy0-200||f.y>vy1+200)).sort((a,b)=>a.born-b.born);
+    const all=fish.filter(f=>f.bot&&f.alive&&f.L>=cap-2).length;if(all>5&&top.length){top[0].alive=false;respawnQ.push(rand(1,3))}}
   for(let i=respawnQ.length-1;i>=0;i--){respawnQ[i]-=dt;if(respawnQ[i]<=0){respawnQ.splice(i,1);spawnBot(botLevel(false))}}
   for(const b of bubbles){b.y+=b.vy*dt;b.w+=dt*3;b.x+=Math.sin(b.w)*12*dt}for(let i=bubbles.length-1;i>=0;i--)if(bubbles[i].y<5)bubbles.splice(i,1);
   if(bubbles.length>600)bubbles.splice(0,bubbles.length-600);
