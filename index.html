@@ -1,3 +1,13 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#03172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Малёк — подводная браузерная игра: вырасти из малька в хозяина глубин.">
 <title>Малёк</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
@@ -11,8 +21,9 @@
 }
 html,body{height:100%}
 [hidden]{display:none!important}
-body{background:var(--abyss);color:var(--foam);font-family:var(--body);overflow:hidden;user-select:none;-webkit-user-select:none}
-canvas#c{position:fixed;inset:0;display:block;cursor:crosshair}
+body{background:var(--abyss);color:var(--foam);font-family:var(--body);overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+canvas#c{position:fixed;inset:0;display:block;cursor:crosshair;touch-action:none}
+button{touch-action:manipulation}
 .panel{position:fixed;background:var(--glass);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 8px 30px rgba(0,10,20,.35)}
 #hud{top:calc(14px + env(safe-area-inset-top,0px));left:calc(14px + env(safe-area-inset-left,0px));width:250px;padding:12px 14px;display:flex;flex-direction:column;gap:9px}
 #hud .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -108,8 +119,58 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
 .helpline{background:none;color:var(--mist);box-shadow:none;border:1px solid var(--line);font:600 13px var(--body);padding:9px 18px}
 #abil div{cursor:pointer}
 #abil .off{color:var(--mist);opacity:.7}
+/* сенсорное управление */
+#tbtns{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;align-items:flex-end;gap:10px}
+#tbtns .col{display:flex;flex-direction:column;gap:10px;align-items:center}
+.tb{all:unset;box-sizing:border-box;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 11px var(--body);color:var(--foam);border:2px solid rgba(150,228,255,.35);
+  background:conic-gradient(rgba(143,227,255,.28) calc(var(--p,1)*360deg),rgba(5,30,52,.55) 0);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);touch-action:none;text-align:center;line-height:1.1}
+.tb svg{width:26px;height:26px}
+.tb.big{width:92px;height:92px;font-size:13px}.tb.big svg{width:34px;height:34px}
+.tb.sm{width:62px;height:62px;font-size:10px}
+.tb.ready{border-color:var(--amber);box-shadow:0 0 18px rgba(255,199,90,.25)}
+.tb.off{opacity:.45}
+.tb:active{transform:scale(.94)}
+body.touch #keys,body.touch #abil{display:none!important}
+body.touch #hud{width:168px;padding:8px 10px;gap:5px}
+body.touch #hud .lvl{font-size:18px}
+body.touch #hud .stage{font-size:11px}
+body.touch .lab{font-size:9px;margin-bottom:2px}
+body.touch .bar,body.touch #diet{height:6px}
+body.touch #diet b{height:12px;top:-3px}
+body.touch #hud .small,body.touch #chips{display:none}
+body.touch #board{width:138px;padding:6px 8px}
+body.touch #board h3{font-size:9px;margin-bottom:3px}
+body.touch #board ol{font-size:11px;gap:0}
+body.touch #board li{padding:1px 4px}
+body.touch #board li:nth-child(n+6):not(.me):not(.gap){display:none}
+body.touch #minibox{top:calc(128px + env(safe-area-inset-top,0px));left:calc(14px + env(safe-area-inset-left,0px));right:auto;bottom:auto;padding:5px}
+body.touch #mini{width:150px;height:50px}
+body.touch .hbtn{left:auto;right:calc(182px + env(safe-area-inset-right,0px));width:34px;height:34px;font-size:15px}
+body.touch #minibox:not([hidden]){display:block}
+body.touch #tip{bottom:auto;top:calc(52px + env(safe-area-inset-top,0px));font-size:13px;padding:8px 12px;max-width:min(460px,calc(100vw - 380px))}
+@media (orientation:portrait){body.touch .hbtn{right:auto;left:calc(14px + env(safe-area-inset-left,0px));top:calc(196px + env(safe-area-inset-top,0px))}body.touch #tip{top:calc(200px + env(safe-area-inset-top,0px));max-width:calc(100vw - 32px)}body.touch #feed{top:calc(150px + env(safe-area-inset-top,0px));max-width:calc(100vw - 200px);left:auto;right:16px;transform:none;align-items:flex-end}}
+body.touch #feed div{font-size:11px;padding:2px 8px}
+body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100vw - 380px)}
+.touchonly{display:none}body.touch .touchonly{display:block}body.touch .deskonly{display:none}
+@media (max-width:700px),(max-height:520px){
+  #evo{align-items:flex-start;overflow:auto}
+  #evo .wrap{gap:10px;padding-block:8px}
+  #evo h2{font-size:18px}
+  #evo .cards{grid-template-columns:1fr;gap:8px}
+  #evo .opt{display:grid;grid-template-columns:40px 1fr;column-gap:12px;row-gap:3px;text-align:left;padding:10px 12px;align-items:start}
+  #evo .opt svg{width:38px;height:38px;grid-row:1/5}
+  #evo .opt kbd{display:none}
+  #help .card{max-height:calc(100vh - 24px)}
+  #help header{padding:10px 14px}#help .body{padding:0 14px 14px}
+  .card{gap:10px}
+  h1{font-size:clamp(40px,12vw,72px)}
+}
 @media (max-width:700px){.hbtn{left:auto;right:calc(186px + env(safe-area-inset-right,0px))}#hud{width:200px;padding:10px}#board{width:160px}#minibox,#keys{display:none}.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
+<style>html,body{margin:0;padding:0}</style>
+</head>
+<body>
+
 
 <canvas id="c"></canvas>
 
@@ -126,6 +187,14 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
 <div id="feed"></div>
 <div id="tip" class="panel"></div>
 <div id="abil" hidden></div>
+<div id="tbtns" hidden>
+  <div class="col">
+    <button id="tbInk" class="tb sm" hidden aria-label="Чернила"><svg viewBox="0 0 52 52"><circle cx="20" cy="28" r="12" fill="#6b4a96"/><circle cx="32" cy="22" r="10" fill="#7c5aa8"/><circle cx="34" cy="34" r="8" fill="#4b3266"/></svg>Чернила</button>
+    <button id="tbShock" class="tb sm" hidden aria-label="Разряд"><svg viewBox="0 0 52 52"><path d="M28 6L14 30h10l-4 16 18-26H28z" fill="#7ff3ff"/></svg>Разряд</button>
+    <button id="tbTorp" class="tb sm" hidden aria-label="Торпеда"><svg viewBox="0 0 52 52"><rect x="6" y="20" width="32" height="12" rx="6" fill="#c3ccd2"/><path d="M38 20c6 0 10 3 10 6s-4 6-10 6z" fill="#ff6b57"/></svg>Торпеда</button>
+  </div>
+  <button id="tbDash" class="tb big" aria-label="Рывок"><svg viewBox="0 0 52 52"><path d="M8 26h26M26 14l12 12-12 12" fill="none" stroke="#ffc75a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="tbDashT">Рывок</span></button>
+</div>
 <div id="keys" hidden>Мышь или стрелки — плыть · Пробел или щелчок — рывок · H — подсказки</div>
 <button id="helpBtn" class="hbtn" hidden aria-label="Как играть" title="Как играть (H)">?</button>
 <div id="minibox" class="panel" hidden><canvas id="mini" width="432" height="144"></canvas></div>
@@ -141,7 +210,8 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
     <input id="nick" maxlength="16" placeholder="Имя рыбы" aria-label="Имя рыбы">
     <button id="go">Плыть</button>
     <button id="helpStart" class="helpline">Как играть</button>
-    <div class="muted">Мышь или стрелки — плыть · Пробел или щелчок — рывок · H — подсказки · Enter — старт</div>
+    <div class="muted deskonly">Мышь или стрелки — плыть · Пробел или щелчок — рывок · H — подсказки · Enter — старт</div>
+    <div class="muted touchonly">Палец слева — джойстик · большая кнопка справа — рывок · «?» — подсказки. Удобнее держать телефон горизонтально.</div>
     <div class="muted" id="recline"></div>
   </div>
 </div>
@@ -166,7 +236,17 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
     <header><h2 id="helpT">Как играть</h2><button class="x" id="helpClose">Понятно</button></header>
     <div class="body">
       <div class="now" id="helpNow"></div>
-      <section>
+      <section class="touchonly">
+        <h3>На телефоне</h3>
+        <ul>
+          <li><b>Плыть:</b> поставьте палец в любое место экрана и ведите — появится джойстик. Чем дальше отвели палец, тем быстрее рыба.</li>
+          <li><b>Рывок:</b> большая кнопка справа внизу или касание вторым пальцем в любом месте экрана. Кольцо на кнопке показывает перезарядку.</li>
+          <li><b>Торпеда, разряд, чернила:</b> маленькие кнопки над рывком, появляются после нужной эволюции.</li>
+          <li><b>Эволюция:</b> нажмите на карточку.</li>
+          <li>Горизонтально держать удобнее: видно больше моря.</li>
+        </ul>
+      </section>
+      <section class="deskonly">
         <h3>Управление</h3>
         <div class="keys">
           <span><kbd>Мышь</kbd></span><span>Рыба плывёт к курсору. Чем дальше курсор, тем быстрее.</span>
@@ -256,7 +336,9 @@ const fmtT=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0'
 
 const cv=$('c'),ctx=cv.getContext('2d'),mini=$('mini'),mctx=mini.getContext('2d');
 let cw=0,ch=0,dpr=1;
-function resize(){dpr=Math.min(2,window.devicePixelRatio||1);cw=innerWidth;ch=innerHeight;cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr);cv.style.width=cw+'px';cv.style.height=ch+'px'}
+let isTouch=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
+function setTouch(v){isTouch=v;document.body.classList.toggle('touch',v)}setTouch(isTouch);
+function resize(){dpr=Math.min(isTouch?1.6:2,window.devicePixelRatio||1);cw=innerWidth;ch=innerHeight;cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr);cv.style.width=cw+'px';cv.style.height=ch+'px'}
 addEventListener('resize',resize);resize();
 
 // ───────── мир ─────────
@@ -581,18 +663,48 @@ cv.addEventListener('mousedown',e=>{if(state==='play'&&player){if(e.button===0)p
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('mouseleave',()=>{mouse.on=false});
 function playerControl(){const f=player;if(!f||!f.alive||f.bot)return;
-  if(useKeys){let x=0,y=0;if(keys.arrowleft||keys.a||keys['ф'])x--;if(keys.arrowright||keys.d||keys['в'])x++;if(keys.arrowup||keys.w||keys['ц'])y--;if(keys.arrowdown||keys.s||keys['ы'])y++;
+  if(joy.on){const dx=joy.x-joy.bx,dy=joy.y-joy.by,d=Math.hypot(dx,dy);if(d>8){f.cx=dx/d;f.cy=dy/d;f.thr=clamp((d-8)/(JR-8),0,1);f.lookX=dx;f.lookY=dy}else f.thr=0}
+  else if(isTouch&&!useKeys)f.thr=0;
+  else if(useKeys){let x=0,y=0;if(keys.arrowleft||keys.a||keys['ф'])x--;if(keys.arrowright||keys.d||keys['в'])x++;if(keys.arrowup||keys.w||keys['ц'])y--;if(keys.arrowdown||keys.s||keys['ы'])y++;
     const l=Math.hypot(x,y);if(l){f.cx=lerp(f.cx,x/l,.25);f.cy=lerp(f.cy,y/l,.25);f.thr=1;f.lookX=x;f.lookY=y}else f.thr=0}
   else if(mouse.on){const wx=cam.x+(mouse.x-cw/2)/cam.z,wy=cam.y+(mouse.y-ch/2)/cam.z;const dx=wx-f.x,dy=wy-f.y,d=Math.hypot(dx,dy);
     if(d>1){f.cx=dx/d;f.cy=dy/d}f.thr=clamp((d-f.r*.6)/(f.r*4+70),0,1);f.lookX=dx;f.lookY=dy}else f.thr=0;
   let near=false;for(const o of fish){if(o!==f&&o.alive&&f.r>=o.r*baseRatio(f)&&Math.hypot(o.x-f.x,o.y-f.y)<f.r*2.6){near=true;break}}f.jawT=near&&ty(f)!=='h'?1:0}
+
+// ───────── сенсор: джойстик и кнопки ─────────
+const JR=62;const joy={on:false,id:null,bx:0,by:0,x:0,y:0,used:false};
+function tpos(t){return [t.clientX,t.clientY]}
+cv.addEventListener('touchstart',e=>{e.preventDefault();if(!isTouch){setTouch(true);resize()}useKeys=false;mouse.on=false;
+  for(const t of e.changedTouches){const [x,y]=tpos(t);
+    if(!joy.on){joy.on=true;joy.id=t.identifier;joy.bx=joy.x=x;joy.by=joy.y=y;joy.used=true}
+    else if(state==='play')pDash()}},{passive:false});
+cv.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches){if(t.identifier!==joy.id)continue;const [x,y]=tpos(t);joy.x=x;joy.y=y;
+  const dx=x-joy.bx,dy=y-joy.by,d=Math.hypot(dx,dy),M=JR*1.35;if(d>M){joy.bx+=dx/d*(d-M);joy.by+=dy/d*(d-M)}}},{passive:false});
+const joyEnd=e=>{for(const t of e.changedTouches)if(t.identifier===joy.id){joy.on=false;joy.id=null}};
+cv.addEventListener('touchend',joyEnd);cv.addEventListener('touchcancel',joyEnd);
+addEventListener('touchstart',()=>{if(!isTouch){setTouch(true);resize()}},{passive:true,capture:true});
+function bindBtn(id,fn){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();fn()});b.addEventListener('contextmenu',e=>e.preventDefault())}
+bindBtn('tbDash',()=>pDash());bindBtn('tbTorp',()=>pAct('torpedo'));bindBtn('tbShock',()=>pAct('shock'));bindBtn('tbInk',()=>pAct('ink'));
+function updTouchBtns(f){if(!isTouch||state!=='play'){$('tbtns').hidden=true;return}$('tbtns').hidden=false;
+  const set=(id,on,cd,max,label)=>{const b=$(id);b.classList.toggle('off',!on);b.classList.toggle('ready',on&&cd<=0);b.style.setProperty('--p',on?(cd>0?1-cd/max:1):1);if(label!==undefined)$('tbDashT').textContent=label};
+  const dOn=hasDash(f);set('tbDash',dOn,f.dashCd,4.5*(f.evo.jet?.5:1),!dOn?'Нет рывка':f.dashCd>0?f.dashCd.toFixed(1)+' с':'Рывок');
+  for(const [id,k] of [['tbTorp','torpedo'],['tbShock','shock'],['tbInk','ink']]){const b=$(id);b.hidden=!f.evo[k];if(f.evo[k])set(id,true,f.cd[k],ACT[k].cd)}}
+function drawJoy(){if(!isTouch||state!=='play')return;ctx.setTransform(dpr,0,0,dpr,0,0);
+  let bx=joy.bx,by=joy.by,kx=joy.x,ky=joy.y,a=1;
+  if(!joy.on){if(joy.used)return;bx=kx=90;by=ky=ch-110;a=.55+.25*Math.sin(now*3)}
+  const dx=kx-bx,dy=ky-by,d=Math.hypot(dx,dy);if(d>JR){kx=bx+dx/d*JR;ky=by+dy/d*JR}
+  ctx.globalAlpha=a;ctx.fillStyle='rgba(5,30,52,.35)';ctx.strokeStyle='rgba(233,251,255,.35)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(bx,by,JR,0,TAU);ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(233,251,255,.55)';ctx.beginPath();ctx.arc(kx,ky,26,0,TAU);ctx.fill();
+  if(!joy.on){ctx.font='600 13px Rubik, system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='rgba(233,251,255,.85)';ctx.fillText('Ведите пальцем',bx,by-JR-16)}
+  ctx.globalAlpha=1}
 
 // ───────── камера ─────────
 const cam={x:W/2,y:H/2,z:1,vh:900};
 function camUpdate(dt){let t=spect&&spect.alive?spect:player&&player.alive?player:null;
   if(state==='menu'||state==='dead'){let best=null;for(const f of fish)if(f.alive&&(!best||total(f)>total(best)))best=f;if(!spect||!spect.alive||Math.random()<dt*.02)spect=best;t=spect}
   if(!t)return;const r=t.r;let vh=(200+r*18)*(t===player&&t.evo.eyes?1.15:1);if(state==='menu'||state==='dead')vh=Math.max(vh,1100);vh=Math.min(vh,H+200);
-  cam.vh=lerp(cam.vh,vh,Math.min(1,dt*1.5));cam.z=ch/cam.vh;
+  const base=cw>=ch?ch:Math.sqrt(cw*ch)*.82;if(state==='play')vh*=clamp(base/760,.55,1);
+  cam.vh=lerp(cam.vh,vh,Math.min(1,dt*1.5));cam.z=base/cam.vh;
   const k=Math.min(1,dt*(state==='play'?5:2));cam.x=lerp(cam.x,t.x+t.vx*.25,k);cam.y=lerp(cam.y,t.y+t.vy*.2,k);
   const hw=cw/2/cam.z,hh=ch/2/cam.z;cam.x=clamp(cam.x,Math.min(hw,W/2),Math.max(W-hw,W/2));cam.y=clamp(cam.y,hh-170,Math.max(H-hh,hh-170))}
 
@@ -617,14 +729,15 @@ let deadT=0,deathInfo=null,maxL=1;
 function startGame(){
   const nm=($('nick').value||'').trim().slice(0,16)||'Малёк';try{localStorage.setItem('malek-name',nm)}catch(e){}
   let best=null,bs=-1;for(let i=0;i<12;i++){const p=weeds[Math.random()*weeds.length|0];const x=p.x+rand(-p.w*.4,p.w*.4),y=ground(x)-p.h*rand(.3,.7);let dmin=1e9;for(const f of fish)if(f.alive&&ty(f)!=='h'&&f.L>1)dmin=Math.min(dmin,Math.hypot(f.x-x,f.y-y));if(dmin>bs){bs=dmin;best=[x,y]}}
-  player=mkFish({name:nm,x:best[0],y:best[1],L:1,protect:5});toggleHelp(false);wasKing=false;player.hueOff=0;fish.push(player);spect=null;maxL=1;
+  player=mkFish({name:nm,x:best[0],y:best[1],L:1,protect:5});toggleHelp(false);wasKing=false;joy.on=false;
+  if(isTouch){try{const de=document.documentElement;if(!document.fullscreenElement&&de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'}).catch(()=>{})}catch(e){}}player.hueOff=0;fish.push(player);spect=null;maxL=1;
   state='play';$('start').hidden=true;$('dead').hidden=true;['hud','board','minibox','keys','helpBtn'].forEach(i=>$(i).hidden=false);
   evoQueue.length=0;closeEvo();cam.x=player.x;cam.y=player.y;
-  setTimeout(()=>tip('Ешьте зелёные водоросли и красных жучков. Что едите чаще — тем и станете. Справка — кнопка «?» или H'),600)}
+  setTimeout(()=>tip(isTouch?'Ведите пальцем по экрану — это джойстик. Ешьте зелёное и красное: что едите чаще, тем и станете':'Ешьте зелёные водоросли и красных жучков. Что едите чаще — тем и станете. Справка — кнопка «?» или H'),600)}
 function playerDie(by,cause){state='dying';deadT=0;spect=by&&by.alive?by:null;closeEvo();
   const life=now-player.born;deathInfo={by:by?by.name:null,byL:by?by.L:0,cause,L:maxL,t:life,kills:player.kills,place:player.bestPlace};
   let nr=false;if(maxL>rec.L){rec.L=maxL;nr=true}if(life>rec.t){rec.t=life;nr=true}saveRec();deathInfo.nr=nr}
-function showDead(){state='dead';const d=deathInfo;['hud','board','minibox','keys','abil','helpBtn'].forEach(i=>$(i).hidden=true);
+function showDead(){state='dead';const d=deathInfo;['hud','board','minibox','keys','abil','helpBtn','tbtns'].forEach(i=>$(i).hidden=true);joy.on=false;
   $('dtitle').textContent=d.cause==='net'?'Вас поймали сетью':d.cause==='hunger'?'Вы умерли от голода':'Вас съели';
   $('dcause').textContent=d.cause==='eaten'?`Вас проглотил(а) «${d.by}» (ур. ${d.byL})`:d.cause==='net'?'Сеть ловит только крупных — в следующий раз уплывайте в сторону':'Сытость кончилась, и вы похудели до конца';
   $('sLvl').textContent=d.L;$('sTime').textContent=fmtT(d.t);$('sKills').textContent=d.kills;$('sPlace').textContent=d.place<99?d.place:'—';
@@ -635,7 +748,7 @@ $('go').onclick=startGame;$('again').onclick=startGame;
 // ───────── справка ─────────
 let paused=false;
 function helpNow(){const el=$('helpNow');if(!player||!player.alive||state!=='play'){el.innerHTML='Вы появляетесь мальком в водорослях. Первые 5 секунд вас нельзя съесть. Ешьте всё подряд и решите, кем стать.';return}
-  const f=player,t=ty(f);let d;if(hasDash(f))d=`Рывок у вас <b>есть</b>${f.evo.jet?' (с ускорителем: дальше, перезарядка 2,2 с)':''}. Пробел или левая кнопка мыши.`;
+  const f=player,t=ty(f);let d;if(hasDash(f))d=`Рывок у вас <b>есть</b>${f.evo.jet?' (с ускорителем: дальше, перезарядка 2,2 с)':''}. ${isTouch?'Большая кнопка справа внизу или касание вторым пальцем.':'Пробел или левая кнопка мыши.'}`;
   else d=t==='c'?`Рывок откроется на <b>4 уровне</b> — вы уже хищник.`:`Рывка пока <b>нет</b>. Он появится, если стать хищником (больше красной еды) и дорасти до 4 уровня, или с эволюцией «Ракетный ускоритель».`;
   const ev=Object.keys(f.evo).map(k=>EVO[k].n);el.innerHTML=`Сейчас вы — <b>${TYPEN[t]}</b>, ${f.L} уровень. ${d}${ev.length?'<br>Ваши эволюции: '+ev.join(', ')+'.':''}`}
 function toggleHelp(on){const h=$('help');on=on===undefined?h.hidden:on;if(on){helpNow();h.hidden=false;paused=true;setTimeout(()=>$('helpClose').focus(),30)}else{h.hidden=true;paused=false}}
@@ -694,7 +807,7 @@ function updHud(){const f=player;if(!f||!f.alive)return;$('lvl').textContent='У
   $('diet').firstElementChild.style.left=(mf(f)*100)+'%';const t=ty(f);const dt=$('dtype');dt.textContent=TYPEN[t];dt.style.color=t==='h'?'#7fe08e':t==='c'?'#ff7a66':'#ffc75a';
   $('time').textContent=fmtT(now-f.born);
   const items=[hasDash(f)?['Пробел','Рывок',f.dashCd,1]:['Пробел','Рывок — пока нет',0,0]];for(const k in ACT)if(f.evo[k])items.push([ACT[k].k,ACT[k].n,f.cd[k],1]);
-  const ab=$('abil');ab.hidden=false;const html=items.map(([k,n,c,on])=>`<div class="panel ${!on?'off':c>0?'wait':'ready'}" title="Подробнее — H"><kbd>${k}</kbd>${n}${on&&c>0?' · '+c.toFixed(1)+' с':''}</div>`).join('');if(ab.innerHTML!==html)ab.innerHTML=html}
+  updTouchBtns(f);const ab=$('abil');ab.hidden=isTouch;const html=items.map(([k,n,c,on])=>`<div class="panel ${!on?'off':c>0?'wait':'ready'}" title="Подробнее — H"><kbd>${k}</kbd>${n}${on&&c>0?' · '+c.toFixed(1)+' с':''}</div>`).join('');if(ab.innerHTML!==html)ab.innerHTML=html}
 
 // ───────── рисование ─────────
 const sx=x=>(x-cam.x)*cam.z+cw/2,sy=y=>(y-cam.y)*cam.z+ch/2;
@@ -719,7 +832,7 @@ function render(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   const fg=ctx.createLinearGradient(0,sy(500),0,sy(H));fg.addColorStop(0,'rgba(2,18,34,0)');fg.addColorStop(1,'rgba(2,14,28,.42)');ctx.fillStyle=fg;ctx.fillRect(0,0,cw,ch);
   const vg=ctx.createRadialGradient(cw/2,ch/2,Math.min(cw,ch)*.35,cw/2,ch/2,Math.max(cw,ch)*.75);vg.addColorStop(0,'rgba(0,10,20,0)');vg.addColorStop(1,'rgba(0,10,20,.45)');ctx.fillStyle=vg;ctx.fillRect(0,0,cw,ch);
-  drawLabels(vis);drawPops();drawNetWarn();
+  drawLabels(vis);drawPops();drawNetWarn();drawJoy();
   miniT-=1/60;if(miniT<=0){miniT=.05;drawMini()}
 }
 function drawFar(p,col,base,amp,fq){worldT(p);const x0=cam.x*p-cw/2/cam.z-50,x1=cam.x*p+cw/2/cam.z+50;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x0,H+50);
@@ -986,7 +1099,7 @@ function drawNetWarn(){if(!net||net.ph==='rise'||!player||!player.alive||player.
 function drawParticles(){for(const b of bubbles){if(b.x<vx0||b.x>vx1||b.y<vy0||b.y>vy1)continue;ctx.strokeStyle='rgba(220,250,255,.55)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.stroke();ctx.fillStyle='rgba(255,255,255,.5)';ctx.beginPath();ctx.arc(b.x-b.r*.35,b.y-b.r*.35,b.r*.25,0,TAU);ctx.fill()}
   for(const p of parts){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.fill()}ctx.globalAlpha=1;
   ctx.fillStyle='rgba(220,245,255,.35)';for(const s of snow){s.x+=Math.sin(now*.3+s.p)*.15;s.y+=.12;if(s.x<vx0||s.x>vx1||s.y<vy0||s.y>vy1){s.x=rand(vx0,vx1);s.y=rand(vy0,vy1)}ctx.beginPath();ctx.arc(s.x,s.y,s.r/cam.z,0,TAU);ctx.fill()}}
-for(let i=0;i<110;i++)snow.push({x:rand(0,W),y:rand(0,H),r:rand(.6,1.8),p:rand(0,TAU)});
+for(let i=0;i<(isTouch?60:110);i++)snow.push({x:rand(0,W),y:rand(0,H),r:rand(.6,1.8),p:rand(0,TAU)});
 function drawLabels(vis){ctx.textAlign='center';ctx.textBaseline='bottom';let leader=null;for(const f of fish)if(f.alive&&(!leader||total(f)>total(leader)))leader=f;
   for(const f of vis){if(f!==player&&f.hidden&&!(player&&player.evo.eyes&&Math.hypot(f.x-player.x,f.y-player.y)<450))continue;
     const X=sx(f.x),Y=sy(f.y-f.r*1.15)-4;if(X<-50||X>cw+50||Y<-30||Y>ch+40)continue;const fs=clamp(f.r*cam.z*.42,10,16);ctx.font=`600 ${fs}px Rubik, system-ui, sans-serif`;
@@ -1018,3 +1131,6 @@ window.__malek={fish,foods,EVO,mids,get player(){return player},get state(){retu
   step:(n,dt=1/60,draw=true)=>{for(let i=0;i<n;i++){now+=dt;update(dt,dt);if(draw){updStrandPush(dt);if(i%10===0)render()}}}};
 })();
 </script>
+
+</body>
+</html>
