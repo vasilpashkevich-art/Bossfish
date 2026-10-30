@@ -280,9 +280,9 @@ body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100
         <h3>Рывок</h3>
         <p>Резкий бросок вперёд примерно в 2,5 раза быстрее обычного. Рыба бросается туда, куда вы ведёте: к курсору мыши или по нажатым стрелкам.</p>
         <ul>
-          <li><b>Кому доступен:</b> хищнику с 4 уровня или любой рыбе с эволюцией «Ракетный ускоритель». Травоядной и всеядной без ускорителя рывка нет.</li>
+          <li><b>Кому доступен:</b> хищнику с 4 уровня, всеядной с 6 уровня или любой рыбе с эволюцией «Ракетный ускоритель». У травоядной без ускорителя рывка нет — у неё шипы.</li>
           <li><b>Длится</b> треть секунды, с ускорителем — почти полсекунды и дальше.</li>
-          <li><b>Перезарядка</b> 4,5 секунды, с ускорителем — 2,2. Сколько осталось, видно на значке внизу слева.</li>
+          <li><b>Перезарядка</b> у хищника 4,5 секунды, у всеядной 6, с ускорителем — 2,2. Сколько осталось, видно на значке внизу слева.</li>
           <li><b>Как ловить:</b> подведите курсор за добычу и жмите рывок, когда до неё два-три корпуса. Издалека добыча успевает увернуться.</li>
           <li><b>Как спасаться:</b> уведите курсор от хищника и сразу жмите рывок, потом прячьтесь в водоросли.</li>
         </ul>
@@ -300,12 +300,12 @@ body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100
       <section>
         <h3>Кого можно съесть</h3>
         <p>Самая крупная рыба носит корону и видна всем на мини-карте пульсирующей точкой. Станете самой большой — вас тоже будет видно.</p>
-        <p>Цвет имени над рыбой: <span style="color:#9dff9a">зелёный</span> — её можно проглотить, <span style="color:#ff8a75">красный</span> — она опасна для вас, белый — ни то ни другое. Хищнику нужно быть крупнее добычи в 1,2 раза (с «Огромной пастью» — в 1,1).</p>
+        <p>Цвет имени над рыбой: <span style="color:#9dff9a">зелёный</span> — её можно проглотить, <span style="color:#ff8a75">красный</span> — она опасна для вас, белый — ни то ни другое. Хищнику нужно быть крупнее добычи в 1,2 раза (с «Огромной пастью» — в 1,1). Но слишком мелкая рыба — меньше трети хищника — проскальзывает у гигантов сквозь зубы: им она не страшна.</p>
       </section>
       <section>
         <h3>От чего умирают</h3>
         <ul>
-          <li><b>Съели.</b> Прячьтесь в водорослях: пока вы мелкая, там вас не видно.</li>
+          <li><b>Съели.</b> Прячьтесь. В водорослях вас не видно примерно до 14 уровня. На дне есть гроты, коралловые арки и обломки лодок: у входа зелёный огонёк — вы пролезаете внутрь, и там вас не видно и не достать тем, кто крупнее входа. Красные стрелки у края экрана показывают, откуда за вами охотятся.</li>
           <li><b>Голод.</b> Полоска сытости тает всегда. На нуле рыба худеет и теряет уровни.</li>
           <li><b>Сеть.</b> Опускается сверху и ловит только крупных. Уплывайте в сторону, когда видите предупреждение.</li>
           <li><b>Медузы</b> жгут и оглушают, пока вы до них не доросли.</li>
@@ -373,13 +373,22 @@ addEventListener('resize',resize);resize();
 
 // ───────── мир ─────────
 const weeds=[];
-{let x=380;while(x<W-380){if(Math.random()<0.8){const w=rand(170,560),h=rand(380,1150),p={x,w,h,strands:[]};const n=Math.round(w/14);
+{let x=380;while(x<W-380){if(Math.random()<0.9){const w=rand(170,560),h=rand(380,1150),p={x,w,h,strands:[]};const n=Math.round(w/14);
   for(let i=0;i<n;i++){p.strands.push({x:x+rand(-w/2,w/2),h:h*rand(.5,1),wd:rand(5,11),hue:rand(92,148),lt:rand(24,40),ph:rand(0,TAU),fg:Math.random()<.32,push:0})}
-  p.strands.sort((a,b)=>a.h-b.h);weeds.push(p)} x+=rand(520,960)}}
+  p.strands.sort((a,b)=>a.h-b.h);weeds.push(p)} x+=rand(440,820)}}
 function weedAt(x,y){for(const p of weeds){if(Math.abs(x-p.x)<p.w/2&&y>ground(x)-p.h*0.85)return p}return null}
 function nearestWeed(x){let b=null,d=1e9;for(const p of weeds){const k=Math.abs(p.x-x);if(k<d){d=k;b=p}}return b}
 function strandPoint(st,fr,t){const g=ground(st.x);const sw=Math.sin(t*0.9+st.ph+fr*2.3)*Math.pow(fr,1.5)*st.h*0.07+Math.sin(t*1.7+st.ph*2+fr*4)*fr*6+st.push*Math.pow(fr,1.2);return [st.x+sw,g-fr*st.h]}
 
+// ───────── укрытия: гроты, коралловые арки, обломки лодок ─────────
+// gap — радиус самой крупной рыбы, которая пролезает внутрь. Внутри её не видно и не достать тем, кто крупнее.
+const shelters=[];{const gaps=[16,20,24,28,33,38,44,52,62];const n=21;const xs=[];for(let i=0;i<n;i++)xs.push((i+.5)/n*W+rand(-180,180));xs.sort(()=>Math.random()-.5);
+  xs.forEach((x,i)=>{const gap=gaps[i%gaps.length],A=gap*3.1,B=gap*1.55,th=16+gap*.55;const g=ground(x);shelters.push({x,gap,A,B,th,cy:g-B-6,kind:gap<=24?'rock':gap<=38?'coral':'hull',seed:Math.random()*99,ph:rand(0,TAU)})})}
+function shelterOf(f){for(const s of shelters){if(f.r>s.gap)continue;const dx=(f.x-s.x)/s.A,dy=(f.y-s.cy)/s.B;if(dx*dx+dy*dy<1)return s}return null}
+function pushOut(f){for(const s of shelters){if(f.r<=s.gap)continue;const m=f.r*.95,A=s.A+s.th+m,B=s.B+s.th+m,dx=(f.x-s.x)/A,dy=(f.y-s.cy)/B,d=Math.hypot(dx,dy);
+  if(d<1&&d>1e-4){f.x=s.x+dx/d*A;f.y=s.cy+dy/d*B;const nx=dx/d/A,ny=dy/d/B,nl=Math.hypot(nx,ny),ux=nx/nl,uy=ny/nl,vn=f.vx*ux+f.vy*uy;if(vn<0){f.vx-=vn*ux*1.2;f.vy-=vn*uy*1.2}}}}
+function refugeFor(f){let best=null,bd=1e9;if(f.r<=hideMax(f)){const p=nearestWeed(f.x);if(p){const x=p.x,y=ground(p.x)-p.h*.45,d=Math.hypot(x-f.x,y-f.y);if(d<bd){bd=d;best=[x,y]}}}
+  for(const s of shelters){if(f.r>s.gap)continue;const d=Math.hypot(s.x-f.x,s.cy-f.y);if(d<bd){bd=d;best=[s.x,s.cy]}}return bd<900?best:null}
 const decor=[];
 function mkCoral(s){const segs=[];const br=(x,y,a,len,w,d)=>{const x2=x+Math.cos(a)*len,y2=y+Math.sin(a)*len;segs.push([x,y,x2,y2,w]);if(d>0){br(x2,y2,a-rand(.3,.6),len*rand(.62,.8),w*.72,d-1);if(Math.random()<.8)br(x2,y2,a+rand(.3,.6),len*rand(.62,.8),w*.72,d-1)}};br(0,0,-Math.PI/2+rand(-.25,.25),26*s,7*s,3);return segs}
 for(let x=40;x<W;x+=rand(50,190)){const k=Math.random();const d={x,s:rand(.6,1.8),ph:rand(0,TAU),hue:[338,12,285,32,188,350][Math.random()*6|0]};
@@ -428,12 +437,15 @@ const EVO={
  camo:{n:'Водорослевая маскировка',d:'Лоскуты-листья по телу. Прячетесь в водорослях любого размера',f:'ho'}
 };
 const ACT={torpedo:{k:'E',cd:5,n:'Торпеда'},shock:{k:'Q',cd:10,n:'Разряд'},ink:{k:'R',cd:12,n:'Чернила'}};
-const hasDash=f=>(ty(f)==='c'&&f.L>=4)||!!f.evo.jet;
+const hasDash=f=>(ty(f)==='c'&&f.L>=4)||(ty(f)==='o'&&f.L>=6)||!!f.evo.jet;
+const dashMax=f=>f.evo.jet?2.25:ty(f)==='o'?6:4.5;
 const spiky=f=>ty(f)==='h'&&f.L>=4;
-const hideMax=f=>f.evo.camo?9999:22;
+const hideMax=f=>f.evo.camo?9999:28;
 const baseRatio=a=>a.evo.jaw?1.1:1.2;
 function eatRatio(a,b){let r=baseRatio(a);if(spiky(b))r=Math.max(r,1.4+(b.evo.spikes?.25:0));if(b.evo.shell)r+=.2;return r}
-const threatTo=(o,p)=>o!==p&&o.alive&&ty(o)!=='h'&&o.r>=p.r*eatRatio(o,p)&&p.protect<=0;
+// рыба меньше 30% радиуса хищника для него слишком мелкая — проскальзывает сквозь зубы
+const TINY=.3;
+const threatTo=(o,p)=>o!==p&&o.alive&&ty(o)!=='h'&&o.r>=p.r*eatRatio(o,p)&&p.r>=o.r*TINY&&p.protect<=0;
 function allowedEvos(f){const t=ty(f);return Object.keys(EVO).filter(k=>!f.evo[k]&&EVO[k].f.includes(t))}
 
 // ───────── рыбы ─────────
@@ -534,7 +546,7 @@ function isTop(f){if(!f)return false;let n=0;for(const o of fish)if(o.alive&&tot
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 // ───────── умения ─────────
-function dash(f){if(!hasDash(f)||f.dashCd>0||f.stun>0||f.caught)return false;const jet=!!f.evo.jet;f.dashT=jet?.45:.32;f.dashCd=4.5*(jet?.5:1);
+function dash(f){if(!hasDash(f)||f.dashCd>0||f.stun>0||f.caught)return false;const jet=!!f.evo.jet;f.dashT=jet?.45:.32;f.dashCd=dashMax(f);
   f.dashA=(f.thr>.05&&(f.cx||f.cy))?Math.atan2(f.cy,f.cx):f.ang;
   for(let i=0;i<5;i++)bubbles.push({x:f.x-Math.cos(f.ang)*f.r,y:f.y-Math.sin(f.ang)*f.r,r:rand(1.5,3.5)+f.r*.05,vy:-rand(30,70),w:rand(0,TAU)});
   if(f===player&&!f.bot)rings.push({x:f.x,y:f.y,R:f.r*2.2,t:.25,c:'255,220,150'});return true}
@@ -572,14 +584,15 @@ function botThink(f){
     if(f.hidden&&d>o.r*2.5+40)continue;const w=1/(d+20);fx+=dx*w;fy+=dy*w;if(d<td){td=d;threat=o}}
   if(threat){f.lookX=threat.x-f.x;f.lookY=threat.y-f.y;
     let wx=0,wy=0;
-    if(f.r<=hideMax(f)){const p=nearestWeed(f.x);if(p&&Math.abs(p.x-f.x)<650){const ty2=ground(p.x)-p.h*0.45;wx=p.x-f.x;wy=ty2-f.y;const wl=Math.hypot(wx,wy)||1;wx/=wl;wy/=wl;
+    if(f.shelter&&threat.r>f.shelter.gap){const sh=f.shelter;f.gx=(sh.x-f.x)/sh.A+rand(-.3,.3);f.gy=(sh.cy-f.y)/sh.B+rand(-.3,.3);f.thr=.3;return}
+    {const rf=refugeFor(f);if(rf){const ty2=rf[1];wx=rf[0]-f.x;wy=ty2-f.y;const wl=Math.hypot(wx,wy)||1;wx/=wl;wy/=wl;
       if(f.hidden&&td>threat.r*2.2){f.gx=wx*0.3+rand(-.3,.3);f.gy=wy*0.3+rand(-.3,.3);f.thr=0.35;return}}}
     const fl=Math.hypot(fx,fy)||1;gx=fx/fl+wx*0.9;gy=fy/fl+wy*0.9;thr=1;
     if(td<threat.r*3+60){if(f.evo.shock&&td<f.r*4+90)shock(f);else if(f.evo.ink)inkUp(f);else dash(f)}
     f.gx=gx;f.gy=gy;f.thr=thr;return}
   if(t!=='h'||f.evo.torpedo){let best=null,bs=0;
-    for(const o of fish){if(o===f||!o.alive||o.protect>0||o.id===f.ignore)continue;if(f.r<o.r*eatRatio(f,o))continue;if(t==='h')continue;if(total(o)+3<need(f.L)*0.35)continue;const d=Math.hypot(o.x-f.x,o.y-f.y);if(d>vis)continue;
-      if(o.hidden&&d>(f.evo.eyes?450:o.r*2.5+f.r))continue;const s=(total(o)+5)/(d+80);if(s>bs){bs=s;best=o}}
+    for(const o of fish){if(o===f||!o.alive||o.protect>0||o.id===f.ignore)continue;if(f.r<o.r*eatRatio(f,o))continue;if(o.r<f.r*TINY)continue;if(t==='h')continue;if(total(o)+3<need(f.L)*0.35)continue;const d=Math.hypot(o.x-f.x,o.y-f.y);if(d>(f.hunger>.7?f.r*4+90:vis))continue;
+      if(o.shelter&&f.r>o.shelter.gap)continue;if(o.hidden&&d>(f.evo.eyes?450:o.r*2.5+f.r))continue;const s=(total(o)+5)/(d+80);if(s>bs){bs=s;best=o}}
     if(best){if(f.tgt!==best.id){f.chaseT=0}f.tgt=best.id;f.chaseT+=0.22;if(f.chaseT>8){f.ignore=best.id;f.ignT=6;f.chaseT=0}
       const lead=Math.min(0.5,Math.hypot(best.x-f.x,best.y-f.y)/400);gx=best.x+best.vx*lead-f.x;gy=best.y+best.vy*lead-f.y;
       const d=Math.hypot(gx,gy);f.gx=gx/d;f.gy=gy/d;f.thr=1;f.aim=best;f.lookX=gx;f.lookY=gy;if(d<f.r*2.4)f.jawT=1;
@@ -602,7 +615,8 @@ function updFish(f,dt){
   f.jaw=lerp(f.jaw,f.jawT,Math.min(1,dt*8));
   if(f.caught){f.phase+=dt*20;f.swim=1.4;f.vx*=.9;f.vy*=.9;f.bend=Math.sin(now*14)*.5;return}
   let sp=maxSpeed(f);f.inWeed=!!weedAt(f.x,f.y);if(f.inWeed&&f.r>hideMax(f))sp*=0.7;
-  f.hidden=(f.inWeed&&f.r<=hideMax(f))||inInk(f);
+  f.shelter=shelterOf(f);pushOut(f);
+  f.hidden=(f.inWeed&&f.r<=hideMax(f))||!!f.shelter||inInk(f);
   let dx=f.cx*sp*f.thr,dy=f.cy*sp*f.thr;if(f.stun>0){dx=0;dy=0}
   if(f.dashT>0){f.dashT-=dt;const ds=sp*(f.evo.jet?2.9:2.5),k=Math.min(1,dt*14),da=f.dashA??f.ang;f.vx=lerp(f.vx,Math.cos(da)*ds,k);f.vy=lerp(f.vy,Math.sin(da)*ds,k);
     if(Math.random()<.6)bubbles.push({x:f.x-Math.cos(f.ang)*f.r*1.2,y:f.y-Math.sin(f.ang)*f.r*1.2,r:rand(1,3)+f.r*.04,vy:-rand(20,50),w:rand(0,TAU)})}
@@ -629,7 +643,7 @@ function updFish(f,dt){
 function bites(){
   for(const a of fish){if(!a.alive||a.caught||a.stun>0||ty(a)==='h')continue;
     const reach=a.evo.jaw?1.3:1.1,mx=a.x+Math.cos(a.ang)*a.r*reach,my=a.y+Math.sin(a.ang)*a.r*reach;
-    for(const b of fish){if(b===a||!b.alive||b.protect>0)continue;if(a.r<b.r*baseRatio(a))continue;
+    for(const b of fish){if(b===a||!b.alive||b.protect>0)continue;if(a.r<b.r*baseRatio(a))continue;if(b.shelter&&a.r>b.shelter.gap)continue;if(b.r<a.r*TINY)continue;
       const dx=b.x-mx,dy=b.y-my,rr=b.r*.95+a.r*.15;if(dx*dx+dy*dy>rr*rr)continue;
       if(a.r<b.r*eatRatio(a,b)){if(a.prickCd<=0){a.prickCd=2;const sp=maxSpeed(a);a.vx=-Math.cos(a.ang)*sp*1.1;a.vy=-Math.sin(a.ang)*sp*1.1;a.dashT=0;
           if(spiky(b)){a.stun=.35;a.flash=1;lose(a,need(a.L)*0.07);if(a===player){pop(a.x,a.y-a.r*1.4,'Укололись о шипы!','#ffb08a',15);tip('Травоядная с шипами: её можно съесть, только если вы крупнее в 1,4 раза (с длинными шипами — ещё больше)')}if(b===player)pop(b.x,b.y-b.r*1.4,'Шипы спасли!','#c8ffb0',15)}
@@ -674,7 +688,7 @@ function eatFoods(){for(const f of fish){if(!f.alive||f.caught)continue;const re
 // ───────── ввод ─────────
 let nagT=0;
 function nag(t){if(now<nagT||!player)return;nagT=now+1.2;pop(player.x,player.y-player.r*1.6,t,'#ffd6a8',14)}
-function pDash(){const f=player;if(!f||!f.alive)return;if(!hasDash(f)){nag(ty(f)==='c'?'Рывок откроется на 4 уровне':'Рывок есть у хищника с 4 ур. или с ракетным ускорителем');tip('Рывок есть у хищника с 4 уровня или у любой рыбы с эволюцией «Ракетный ускоритель». Подробно — кнопка «?» или клавиша H');return}
+function pDash(){const f=player;if(!f||!f.alive)return;if(!hasDash(f)){nag(ty(f)==='c'?'Рывок откроется на 4 уровне':ty(f)==='o'?'Рывок откроется на 6 уровне':'У травоядной нет рывка — у неё шипы');tip('Рывок есть у хищника с 4 уровня, у всеядной с 6 уровня или у любой рыбы с эволюцией «Ракетный ускоритель». Подробно — кнопка «?» или клавиша H');return}
   if(f.dashCd>0){nag('Рывок через '+f.dashCd.toFixed(1)+' с');return}dash(f)}
 function pAct(k){const f=player;if(!f||!f.alive)return;if(!f.evo[k]){nag('Нужна эволюция «'+EVO[k].n+'»');return}if(f.cd[k]>0){nag(ACT[k].n+' через '+f.cd[k].toFixed(1)+' с');return}({torpedo:fire,shock:shock,ink:inkUp})[k](f)}
 const keys={},mouse={x:0,y:0,on:false};let useKeys=false;
@@ -719,7 +733,7 @@ function bindBtn(id,fn){const b=$(id);b.addEventListener('pointerdown',e=>{e.pre
 bindBtn('tbDash',()=>pDash());bindBtn('tbTorp',()=>pAct('torpedo'));bindBtn('tbShock',()=>pAct('shock'));bindBtn('tbInk',()=>pAct('ink'));
 function updTouchBtns(f){if(!isTouch||state!=='play'){$('tbtns').hidden=true;return}$('tbtns').hidden=false;
   const set=(id,on,cd,max,label)=>{const b=$(id);b.classList.toggle('off',!on);b.classList.toggle('ready',on&&cd<=0);b.style.setProperty('--p',on?(cd>0?1-cd/max:1):1);if(label!==undefined)$('tbDashT').textContent=label};
-  const dOn=hasDash(f);set('tbDash',dOn,f.dashCd,4.5*(f.evo.jet?.5:1),!dOn?'Нет рывка':f.dashCd>0?f.dashCd.toFixed(1)+' с':'Рывок');
+  const dOn=hasDash(f);set('tbDash',dOn,f.dashCd,dashMax(f),!dOn?'Нет рывка':f.dashCd>0?f.dashCd.toFixed(1)+' с':'Рывок');
   for(const [id,k] of [['tbTorp','torpedo'],['tbShock','shock'],['tbInk','ink']]){const b=$(id);b.hidden=!f.evo[k];if(f.evo[k])set(id,true,f.cd[k],ACT[k].cd)}}
 function drawJoy(){if(!isTouch||state!=='play')return;ctx.setTransform(dpr,0,0,dpr,0,0);
   let bx=joy.bx,by=joy.by,kx=joy.x,ky=joy.y,a=1;
@@ -760,8 +774,9 @@ recLine();try{$('nick').value=localStorage.getItem('malek-name')||''}catch(e){}
 let deadT=0,deathInfo=null,maxL=1;
 function startGame(){
   const nm=($('nick').value||'').trim().slice(0,16)||'Малёк';try{localStorage.setItem('malek-name',nm)}catch(e){}
-  let best=null,bs=-1;for(let i=0;i<12;i++){const p=weeds[Math.random()*weeds.length|0];const x=p.x+rand(-p.w*.4,p.w*.4),y=ground(x)-p.h*rand(.3,.7);let dmin=1e9;for(const f of fish)if(f.alive&&ty(f)!=='h'&&f.L>1)dmin=Math.min(dmin,Math.hypot(f.x-x,f.y-y));if(dmin>bs){bs=dmin;best=[x,y]}}
-  player=mkFish({name:nm,x:best[0],y:best[1],L:1,protect:5});toggleHelp(false);wasKing=false;joy.on=false;
+  // малёк рождается в маленьком гроте подальше от хищников
+  let best=null,bs=-1;for(const sh of shelters){if(sh.gap>24)continue;let dmin=1e9;for(const f of fish)if(f.alive&&ty(f)!=='h'&&f.L>1)dmin=Math.min(dmin,Math.hypot(f.x-sh.x,f.y-sh.cy));if(dmin>bs){bs=dmin;best=[sh.x+rand(-sh.A*.3,sh.A*.3),sh.cy]}}
+  player=mkFish({name:nm,x:best[0],y:best[1],L:1,protect:8});toggleHelp(false);wasKing=false;joy.on=false;
   if(isTouch){try{const de=document.documentElement;if(!document.fullscreenElement&&de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'}).catch(()=>{})}catch(e){}}player.hueOff=0;fish.push(player);spect=null;maxL=1;
   clearSave();enterPlay();
   setTimeout(()=>tip(isTouch?'Ведите пальцем по экрану — это джойстик. Ешьте зелёное и красное: что едите чаще, тем и станете':'Ешьте зелёные водоросли и красных жучков. Что едите чаще — тем и станете. Справка — кнопка «?» или H'),600)}
@@ -808,9 +823,9 @@ updMenu();
 
 // ───────── справка ─────────
 let paused=false;
-function helpNow(){const el=$('helpNow');if(!player||!player.alive||state!=='play'){el.innerHTML='Вы появляетесь мальком в водорослях. Первые 5 секунд вас нельзя съесть. Ешьте всё подряд и решите, кем стать.';return}
+function helpNow(){const el=$('helpNow');if(!player||!player.alive||state!=='play'){el.innerHTML='Вы появляетесь мальком в маленьком гроте на дне. Первые 8 секунд вас нельзя съесть. Ешьте всё подряд и решите, кем стать.';return}
   const f=player,t=ty(f);let d;if(hasDash(f))d=`Рывок у вас <b>есть</b>${f.evo.jet?' (с ускорителем: дальше, перезарядка 2,2 с)':''}. ${isTouch?'Большая кнопка справа внизу или касание вторым пальцем.':'Пробел или левая кнопка мыши.'}`;
-  else d=t==='c'?`Рывок откроется на <b>4 уровне</b> — вы уже хищник.`:`Рывка пока <b>нет</b>. Он появится, если стать хищником (больше красной еды) и дорасти до 4 уровня, или с эволюцией «Ракетный ускоритель».`;
+  else d=t==='c'?`Рывок откроется на <b>4 уровне</b> — вы уже хищник.`:t==='o'?`Рывок откроется на <b>6 уровне</b> — вы всеядная.`:`Рывка <b>нет</b>: у травоядной вместо него шипы. Рывок даст эволюция «Ракетный ускоритель» или переход в хищники.`;
   const ev=Object.keys(f.evo).map(k=>EVO[k].n);el.innerHTML=`Сейчас вы — <b>${TYPEN[t]}</b>, ${f.L} уровень. ${d}${ev.length?'<br>Ваши эволюции: '+ev.join(', ')+'.':''}`}
 function syncPause(){paused=!$('help').hidden||!$('pause').hidden}
 function toggleHelp(on){const h=$('help');on=on===undefined?h.hidden:on;if(on){helpNow();h.hidden=false;setTimeout(()=>$('helpClose').focus(),30)}else{h.hidden=true;if(!$('pause').hidden)setTimeout(()=>$('pResume').focus(),30)}syncPause()}
@@ -854,7 +869,10 @@ function update(dt,rdt){
   if(state==='play'&&player&&!paused){saveT-=rdt;if(saveT<=0){saveT=10;saveGame()}}
   if(state==='play'&&player){maxL=Math.max(maxL,player.L);
     if(player.hunger<.25)tip('Голод! Ешьте скорее, иначе начнёте худеть и уменьшаться');
-    if(player.hidden&&player.L<6)tip('В водорослях вас не видят — пока вы мелкая');
+    if(player.hidden&&player.L<6&&!player.shelter)tip('В водорослях вас не видят — пока вы мелкая');
+    if(player.shelter)tip('Вы в укрытии. Сюда не пролезет рыба крупнее входа, и снаружи вас не видно. Зелёные огоньки у входов — вы пролезаете, красные — нет');
+    if(player.L===8&&!player.shelter)tip('На дне есть гроты, коралловые арки и обломки лодок. Если у входа зелёный огонёк — туда можно спрятаться');
+    for(const f of fish)if(f.tgt===player.id&&threatTo(f,player)){tip('Красные стрелки у края экрана — за вами охотятся оттуда');break}
     if(!evoOpen&&evoQueue.length)openEvo(evoQueue.shift());}
   if(evoOpen&&!paused){evoT-=rdt;$('evoBar').style.width=(evoT/14*100)+'%';if(evoT<=0){const b=$('evoC').children[Math.random()*$('evoC').children.length|0];if(b)b.click();else closeEvo()}}
   if(state==='dying'){deadT+=rdt;if(deadT>2.4)showDead()}
@@ -890,14 +908,16 @@ function render(){
   for(const p of weeds)if(p.x+p.w>vx0&&p.x-p.w<vx1)for(const st of p.strands)if(!st.fg)drawStrand(st);
   drawDecor();drawFoods();
   const vis=fish.filter(f=>f.alive&&f.x+f.r*3>vx0&&f.x-f.r*3<vx1&&f.y+f.r*3>vy0&&f.y-f.r*3<vy1).sort((a,b)=>b.r-a.r);
+  for(const sh of shelters)if(sh.x+sh.A+sh.th>vx0&&sh.x-sh.A-sh.th<vx1&&sh.cy-sh.B-sh.th<vy1)drawShelter(sh,false);
   for(const f of vis)drawFish(f);
+  for(const sh of shelters)if(sh.x+sh.A+sh.th>vx0&&sh.x-sh.A-sh.th<vx1&&sh.cy-sh.B-sh.th<vy1)drawShelter(sh,true);
   drawShots();
   for(const p of weeds)if(p.x+p.w>vx0&&p.x-p.w<vx1)for(const st of p.strands)if(st.fg)drawStrand(st,true);
   drawClouds();if(net)drawNet();drawRings();drawParticles();
   ctx.setTransform(dpr,0,0,dpr,0,0);
   const fg=ctx.createLinearGradient(0,sy(500),0,sy(H));fg.addColorStop(0,'rgba(2,18,34,0)');fg.addColorStop(1,'rgba(2,14,28,.42)');ctx.fillStyle=fg;ctx.fillRect(0,0,cw,ch);
   const vg=ctx.createRadialGradient(cw/2,ch/2,Math.min(cw,ch)*.35,cw/2,ch/2,Math.max(cw,ch)*.75);vg.addColorStop(0,'rgba(0,10,20,0)');vg.addColorStop(1,'rgba(0,10,20,.45)');ctx.fillStyle=vg;ctx.fillRect(0,0,cw,ch);
-  drawLabels(vis);drawPops();drawNetWarn();drawJoy();
+  drawLabels(vis);drawThreats();drawPops();drawNetWarn();drawJoy();
   miniT-=1/60;if(miniT<=0){miniT=.05;drawMini()}
 }
 function drawFar(p,col,base,amp,fq){worldT(p);const x0=cam.x*p-cw/2/cam.z-50,x1=cam.x*p+cw/2/cam.z+50;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x0,H+50);
@@ -976,6 +996,30 @@ const MID={
   for(let i=0;i<5;i++){const x=-60+i*30;ctx.fillStyle=`hsla(${[338,12,285,32,188][i]},35%,32%,.8)`;ctx.beginPath();ctx.arc(x,-830+Math.abs(i-2)*14,26,0,TAU);ctx.fill()}
   kelpHang([[-20,-520,200],[90,-505,150],[-150,-500,170]])}
 };
+function drawShelter(sh,front){const {x,cy,A,B,th,gap,kind}=sh,g=ground(x),oA=A+th,oB=B+th;ctx.save();
+  const fits=player&&player.alive&&player.r<=gap,inside=player&&player.shelter===sh;
+  const pal=kind==='rock'?['#5b6b74','#3a4850','#7d8e97']:kind==='coral'?['#b0566a','#6f2f45','#e48a9a']:['#6b4f34','#3f2c1c','#8e6d4a'];
+  if(!front){// задняя стенка и тень внутри
+    ctx.beginPath();ctx.ellipse(x,cy,oA,oB,0,Math.PI,0);ctx.lineTo(x+oA,g+8);ctx.lineTo(x-oA,g+8);ctx.closePath();
+    const gr=ctx.createLinearGradient(0,cy-oB,0,g);gr.addColorStop(0,pal[0]);gr.addColorStop(1,pal[1]);ctx.fillStyle=gr;ctx.fill();
+    ctx.fillStyle='rgba(4,16,28,.82)';ctx.beginPath();ctx.ellipse(x,cy,A,B,0,0,TAU);ctx.fill();
+    if(kind==='hull'){ctx.strokeStyle='rgba(30,18,10,.6)';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x,cy,A*.98,B*.98,0,Math.PI+.15,Math.PI*2-.15);ctx.stroke();
+      for(let i=-4;i<=4;i++){const xx=x+i*A/5;ctx.beginPath();ctx.moveTo(xx,cy-B*Math.sqrt(Math.max(0,1-(i/5)**2))*.95);ctx.lineTo(xx,cy+B*.6);ctx.stroke()}}
+    ctx.restore();return}
+  // передний край: верх арки поверх рыбы, щели по бокам
+  ctx.beginPath();ctx.ellipse(x,cy,oA,oB,0,Math.PI*1.08,Math.PI*1.92);ctx.ellipse(x,cy,A,B,0,Math.PI*1.92,Math.PI*1.08,true);ctx.closePath();
+  const gr=ctx.createLinearGradient(0,cy-oB,0,cy);gr.addColorStop(0,pal[2]);gr.addColorStop(1,pal[0]);ctx.fillStyle=gr;ctx.fill();ctx.strokeStyle=pal[1];ctx.lineWidth=2.5;ctx.stroke();
+  // нижний порог
+  ctx.fillStyle=pal[1];ctx.beginPath();ctx.ellipse(x,cy,oA,oB,0,Math.PI*.12,Math.PI*.88);ctx.ellipse(x,cy,A,B,0,Math.PI*.88,Math.PI*.12,true);ctx.closePath();ctx.fill();
+  // декор
+  if(kind==='rock'){ctx.fillStyle='rgba(120,170,90,.55)';for(let i=0;i<5;i++){const a=Math.PI*(1.15+i*.17);ctx.beginPath();ctx.ellipse(x+Math.cos(a)*(A+th*.5),cy+Math.sin(a)*(B+th*.5),th*.45,th*.22,a,0,TAU);ctx.fill()}}
+  else if(kind==='coral'){for(let i=0;i<6;i++){const a=Math.PI*(1.12+i*.15),px=x+Math.cos(a)*(oA-2),py=cy+Math.sin(a)*(oB-2);ctx.fillStyle=`hsl(${[338,12,32,285][i%4]},70%,${62+(i%2)*10}%)`;ctx.beginPath();ctx.arc(px,py,th*.28+Math.sin(now*2+i+sh.ph)*1.2,0,TAU);ctx.fill()}}
+  else{ctx.strokeStyle='rgba(40,25,12,.7)';ctx.lineWidth=2;for(let i=1;i<6;i++){const a=Math.PI*(1.08+i*.14);ctx.beginPath();ctx.moveTo(x+Math.cos(a)*A,cy+Math.sin(a)*B);ctx.lineTo(x+Math.cos(a)*oA,cy+Math.sin(a)*oB);ctx.stroke()}
+    ctx.fillStyle='#2b1d12';ctx.beginPath();ctx.arc(x-A*.35,cy-B-th*.5,th*.18,0,TAU);ctx.arc(x+A*.25,cy-B-th*.45,th*.18,0,TAU);ctx.fill()}
+  // подсветка входов: зелёная — вы пролезаете, красная — нет
+  if(player&&player.alive&&Math.abs(player.x-x)<oA+700&&Math.abs(player.y-cy)<oB+500){const c=fits?'120,255,150':'255,110,90',a=(inside?.25:.55)+.25*Math.sin(now*3+sh.ph);
+    for(const sd of[-1,1]){const gx=x+sd*(A+th*.5),gr2=ctx.createRadialGradient(gx,cy,0,gx,cy,gap*1.2);gr2.addColorStop(0,`rgba(${c},${a})`);gr2.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=gr2;ctx.beginPath();ctx.arc(gx,cy,gap*1.2,0,TAU);ctx.fill()}}
+  ctx.restore()}
 function surfY(x){return 5*Math.sin(x*.011+now*1.6)+3*Math.sin(x*.027-now*2.1)}
 function drawSurface(){if(vy0>60)return;ctx.beginPath();ctx.moveTo(vx0,-400);for(let x=vx0;x<=vx1;x+=24)ctx.lineTo(x,surfY(x));ctx.lineTo(vx1,-400);ctx.closePath();
   const g=ctx.createLinearGradient(0,-300,0,10);g.addColorStop(0,'rgba(190,240,255,0)');g.addColorStop(1,'rgba(220,250,255,.55)');ctx.fillStyle=g;ctx.fill();
@@ -1171,9 +1215,17 @@ function drawLabels(vis){ctx.textAlign='center';ctx.textBaseline='bottom';let le
     let col='rgba(233,251,255,.9)';if(player&&player.alive&&f!==player){if(threatTo(f,player))col='#ff8a75';else if(ty(player)!=='h'&&player.r>=f.r*eatRatio(player,f))col='#9dff9a'}if(f===player)col='#ffd27a';
     const txt=f.name+'  '+f.L;ctx.lineWidth=3;ctx.strokeStyle='rgba(2,16,30,.65)';ctx.strokeText(txt,X,Y);ctx.fillStyle=col;ctx.fillText(txt,X,Y);
     if(f===leader){const cy=Y-fs-4,s=Math.max(7,fs*.6);ctx.fillStyle='#ffc75a';ctx.beginPath();ctx.moveTo(X-s,cy);ctx.lineTo(X-s,cy-s*.9);ctx.lineTo(X-s*.45,cy-s*.4);ctx.lineTo(X,cy-s*1.1);ctx.lineTo(X+s*.45,cy-s*.4);ctx.lineTo(X+s,cy-s*.9);ctx.lineTo(X+s,cy);ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(60,30,0,.6)';ctx.lineWidth=1;ctx.stroke()}}}
+function drawThreats(){if(state!=='play'||!player||!player.alive)return;const P=player,mg=26;
+  for(const f of fish){if(!threatTo(f,P)||f.tgt!==P.id)continue;const X=sx(f.x),Y=sy(f.y);if(X>-f.r*cam.z&&X<cw+f.r*cam.z&&Y>-f.r*cam.z&&Y<ch+f.r*cam.z)continue;
+    const d=Math.hypot(f.x-P.x,f.y-P.y);if(d>2600)continue;const px=sx(P.x),py=sy(P.y),a=Math.atan2(Y-py,X-px);
+    let t=1e9;const c=Math.cos(a),s2=Math.sin(a);if(c>0)t=Math.min(t,(cw-mg-px)/c);if(c<0)t=Math.min(t,(mg-px)/c);if(s2>0)t=Math.min(t,(ch-mg-py)/s2);if(s2<0)t=Math.min(t,(mg-py)/s2);
+    const ex=px+c*t,ey=py+s2*t,al=clamp(1.2-d/2600,.35,1)*(.75+.25*Math.sin(now*8));ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.globalAlpha=al;
+    ctx.fillStyle='#ff6b57';ctx.strokeStyle='rgba(40,0,0,.6)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-10,-12);ctx.lineTo(-4,0);ctx.lineTo(-10,12);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
+  ctx.globalAlpha=1}
 function drawPops(){ctx.textAlign='center';ctx.textBaseline='middle';for(const p of pops){ctx.globalAlpha=Math.min(1,p.life*1.5);ctx.font=`700 ${p.s}px Rubik, system-ui, sans-serif`;const X=sx(p.x),Y=sy(p.y);ctx.lineWidth=3;ctx.strokeStyle='rgba(2,16,30,.6)';ctx.strokeText(p.txt,X,Y);ctx.fillStyle=p.c;ctx.fillText(p.txt,X,Y)}ctx.globalAlpha=1}
 function drawMini(){const w=mini.width,h=mini.height,kx=w/W,ky=h/H;mctx.clearRect(0,0,w,h);const g=mctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#1f87ad');g.addColorStop(1,'#06223e');mctx.fillStyle=g;mctx.fillRect(0,0,w,h);
   mctx.fillStyle='#6f6550';mctx.beginPath();mctx.moveTo(0,h);for(let x=0;x<=W;x+=150)mctx.lineTo(x*kx,ground(x)*ky);mctx.lineTo(w,h);mctx.fill();
+  mctx.fillStyle='rgba(200,170,140,.7)';for(const sh of shelters){mctx.beginPath();mctx.ellipse(sh.x*kx,ground(sh.x)*ky,Math.max(2,(sh.A+sh.th)*kx),Math.max(2,(sh.B*2+sh.th)*ky),0,Math.PI,0);mctx.fill()}
   mctx.fillStyle='rgba(110,220,110,.55)';for(const p of weeds){mctx.fillRect((p.x-p.w/2)*kx,(ground(p.x)-p.h*.85)*ky,p.w*kx,p.h*.85*ky)}
   if(net){mctx.fillStyle='rgba(255,120,80,.4)';mctx.fillRect((net.x-net.w/2)*kx,0,net.w*kx,Math.max(2,net.y*ky))}
   mctx.strokeStyle='rgba(255,255,255,.35)';mctx.lineWidth=2;mctx.strokeRect((cam.x-cw/2/cam.z)*kx,(cam.y-ch/2/cam.z)*ky,cw/cam.z*kx,ch/cam.z*ky);
@@ -1192,7 +1244,7 @@ let wasKing=false;
 let last=performance.now();
 function frame(ts){const rdt=Math.min(.05,Math.max(0,(ts-last)/1000));last=ts;const dt=paused?0:rdt*timeScale;now+=dt;update(dt,rdt);updStrandPush(dt);render();requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
-window.__malek={fish,foods,EVO,mids,get player(){return player},get state(){return state},get death(){return deathInfo},startGame,
+window.__malek={fish,foods,EVO,mids,shelters,get player(){return player},get state(){return state},get death(){return deathInfo},startGame,
   step:(n,dt=1/60,draw=true)=>{for(let i=0;i<n;i++){now+=dt;update(dt,dt);if(draw){updStrandPush(dt);if(i%10===0)render()}}}};
 })();
 </script>
