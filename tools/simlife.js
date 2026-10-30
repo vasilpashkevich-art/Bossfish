@@ -5,8 +5,8 @@ const file=process.argv[5]||path.join(__dirname,'..','index.html');
 const js=fs.readFileSync(file,'utf8').split('<script>')[1].split('</script>')[0];
 const noop=()=>{};const grad={addColorStop:noop};
 const ctxP=new Proxy({},{get:(t,k)=>{if(k in t)return t[k];if(/Gradient/.test(k))return ()=>grad;return noop},set:(t,k,v)=>{t[k]=v;return true}});
-const els={};function el(id){return els[id]||(els[id]={id,hidden:false,style:{setProperty:noop},classList:{add:noop,remove:noop,toggle:noop},textContent:'',innerHTML:'',value:'',children:[],firstElementChild:{style:{}},addEventListener:noop,getContext:()=>ctxP,appendChild(c){this.children.push(c)},removeChild(){this.children.shift()},focus:noop,width:432,height:144,remove:noop})}
-global.document={getElementById:el,createElement:()=>({style:{},remove:noop,set onclick(f){this._c=f},click(){this._c&&this._c()}}),activeElement:null,body:{classList:{toggle:noop,add:noop,remove:noop}},documentElement:{},hidden:false};
+const els={};function el(id){return els[id]||(els[id]={id,hidden:false,style:{setProperty:noop},classList:{add:noop,remove:noop,toggle:noop},textContent:'',innerHTML:'',value:'',children:[],firstElementChild:{style:{}},addEventListener:noop,getContext:()=>ctxP,appendChild(c){this.children.push(c)},removeChild(){this.children.shift()},focus:noop,setAttribute:noop,width:432,height:144,remove:noop})}
+global.document={addEventListener:()=>{},getElementById:el,createElement:()=>({style:{},remove:noop,set onclick(f){this._c=f},click(){this._c&&this._c()}}),activeElement:null,body:{classList:{toggle:noop,add:noop,remove:noop}},documentElement:{},hidden:false};
 global.window={devicePixelRatio:1,matchMedia:()=>({matches:false})};global.matchMedia=global.window.matchMedia;global.innerWidth=1400;global.innerHeight=850;global.addEventListener=noop;
 global.Path2D=class{moveTo(){}quadraticCurveTo(){}closePath(){}lineTo(){}bezierCurveTo(){}};
 global.localStorage={getItem:()=>null,setItem:noop,removeItem:noop};global.requestAnimationFrame=noop;global.performance={now:()=>0};global.setTimeout=()=>0;
