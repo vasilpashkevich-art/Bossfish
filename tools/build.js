@@ -11,6 +11,9 @@ const out=`<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#03172a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%230b3452%22/%3E%3Cpath d=%22M12 32c8-12 26-14 36 0-10 14-28 12-36 0z%22 fill=%22%23ffc75a%22/%3E%3Cpath d=%22M46 32l10-8v16z%22 fill=%22%23ff8a5c%22/%3E%3Ccircle cx=%2222%22 cy=%2229%22 r=%223%22 fill=%22%2303172a%22/%3E%3C/svg%3E">
+<meta property="og:title" content="Bossfish">
+<meta property="og:description" content="Hatch as a tiny fry, eat, evolve and become the master of the deep. Free browser game.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
