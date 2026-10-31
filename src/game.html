@@ -359,13 +359,13 @@ body[data-lang="en"] .ru,body:not([data-lang="en"]) .en{display:none!important}
           <li><b>Укус за хвост.</b> Догоните рыбу крупнее себя сзади и ткнитесь ей в хвост. Она теряет часть роста и на секунду замедляется, вы получаете кусок роста. Можно раз в 3,5 секунды, даже травоядной. Боты тоже так охотятся на рыбу в короне.</li>
           <li>Рыба, которая плывёт от вас, не опасна, пока не развернётся.</li>
           <li><b>Пузыри-усилители</b> — светящиеся пузыри в толще воды. Можно держать один, F или кнопка — включить. Новый пузырь заменяет старый. <span style="color:#78e6ff">Щит</span> выдерживает один укус (8 с), <span style="color:#ffd25a">Скорость</span> ×1,45 на 5 с, <span style="color:#c8aaff">Невидимость</span> 5 с, <span style="color:#8cff96">Магнит</span> тянет еду 6 с.</li>
-          <li><b>Укрытия в толще воды:</b> бочки на цепях и обломки кораблей. Внутрь пролезет только тот, кто меньше входа.</li>
+          <li><b>Укрытия повыше дна:</b> пещеры в скалах-столбах, гигантские раковины на уступах, пробоины в затонувших кораблях и дупла в корягах у поверхности. Внутрь пролезет только тот, кто меньше входа.</li>
         </ul></div>
         <div class="en"><ul>
           <li><b>Tail bite.</b> Catch up with a bigger fish from behind and bump its tail. It loses some growth and slows down for a second, and you gain growth. Once every 3.5 s, herbivores too. Bots hunt the crowned fish this way as well.</li>
           <li>A fish swimming away from you is harmless until it turns around.</li>
           <li><b>Power bubbles</b> glow in open water. You can hold one; press F or the button to use it. A new bubble replaces the old one. <span style="color:#78e6ff">Shield</span> survives one bite (8 s), <span style="color:#ffd25a">Speed</span> ×1.45 for 5 s, <span style="color:#c8aaff">Invisibility</span> 5 s, <span style="color:#8cff96">Magnet</span> pulls food for 6 s.</li>
-          <li><b>Mid-water shelters:</b> barrels on chains and shipwreck pieces. Only fish smaller than the opening fit inside.</li>
+          <li><b>Shelters above the bottom:</b> caves in rock pillars, giant shells on ledges, holes in sunken ships and hollow logs near the surface. Only fish smaller than the opening fit inside.</li>
         </ul></div>
       </section>
       <section>
@@ -502,13 +502,32 @@ function strandPoint(st,fr,t){const g=ground(st.x);const sw=Math.sin(t*0.9+st.ph
 
 // ───────── укрытия: гроты, коралловые арки, обломки лодок ─────────
 // gap — радиус самой крупной рыбы, которая пролезает внутрь. Внутри её не видно и не достать тем, кто крупнее.
-const shelters=[];{const gaps=[16,20,24,28,33,38,44,52,62];const n=21;const xs=[];for(let i=0;i<n;i++)xs.push((i+.5)/n*W+rand(-180,180));xs.sort(()=>Math.random()-.5);
+const shelters=[],props=[];{const gaps=[16,20,24,28,33,38,44,52,62];const n=21;const xs=[];for(let i=0;i<n;i++)xs.push((i+.5)/n*W+rand(-180,180));xs.sort(()=>Math.random()-.5);
   xs.forEach((x,i)=>{const gap=gaps[i%gaps.length],A=gap*3.1,B=gap*1.55,th=16+gap*.55;const g=ground(x);shelters.push({x,gap,A,B,th,cy:g-B-6,kind:gap<=24?'rock':gap<=38?'coral':'hull',seed:Math.random()*99,ph:rand(0,TAU)})});
-  // в толще воды: бочки на цепях от буёв и обломки кораблей, застрявшие в старых сетях
-  const fg=[18,22,26,30,36,42,48,56],m=14;for(let i=0;i<m;i++){const x=(i+.5)/m*W+rand(-250,250),gap=fg[i%fg.length],A=gap*3,B=gap*1.5,th=14+gap*.5;const g=ground(x);
-    shelters.push({x,gap,A,B,th,cy:rand(520,Math.max(700,g-700)),kind:gap<=30?'barrel':'wreck',float:true,seed:Math.random()*99,ph:rand(0,TAU)})}}
+  // в толще воды: скалы-столбы с пещерами, скалы с раковинами, корабли носом вверх, коряги у поверхности.
+  // Сами конструкции — фон (крупные рыбы проплывают перед ними), укрытия — только дыры, раковины и дупла.
+  const used=[],free=w=>{for(let k=0;k<200;k++){const x=rand(400,W-400);if(used.every(u=>Math.abs(u-x)>w)){used.push(x);return x}}const x=rand(400,W-400);used.push(x);return x};
+  const hole=(x,cy,gap,kind,extra)=>{const h=Object.assign({x,cy,gap,A:gap*2.6,B:gap*1.3,th:0,kind,float:true,seed:Math.random()*99,ph:rand(0,TAU)},extra);shelters.push(h);return h};
+  for(let i=0;i<4;i++){const x=free(950),g=ground(x),top=g-rand(1150,1400),bw=rand(250,300),hh=g-top,sd=Math.random()<.5?-1:1,pts=[];
+    const prof=[[-1,0],[-.93,.15],[-.8,.32],[-.86,.5],[-.66,.68],[-.5,.86],[-.3,.97],[.05,1],[.36,.95],[.58,.8],[.68,.6],[.83,.42],[.78,.22],[.95,.08],[1.08,0]];
+    for(const [a,b] of prof)pts.push([x+a*bw*(1-.3*b)*sd+rand(-14,14),g+12-b*hh+rand(-16,16)]);
+    const h1=hole(x+sd*rand(-10,10),top+hh*.2,18,'cave'),h2=hole(x-sd*rand(0,15),top+hh*.52,30,'cave');
+    props.push({t:'pillar',x,g,top,bw,pts,sd,holes:[h1,h2],x0:x-bw*1.2,x1:x+bw*1.2,y0:top-20,y1:g+20})}
+  for(let i=0;i<4;i++){const x=free(950),g=ground(x),top=g-rand(950,1150),bw=rand(170,200),hh=g-top,sd=Math.random()<.5?-1:1,pts=[];
+    const prof=[[-1,0],[-.9,.3],[-.74,.55],[-.5,.85],[-.2,1],[.25,.98],[.5,.78],[.74,.5],[.85,.25],[1.05,0]];
+    for(const [a,b] of prof)pts.push([x+a*bw*(1-.2*b)*sd+rand(-8,8),g+12-b*hh+rand(-10,10)]);
+    const ly=g-hh*.55,lx=x+sd*bw*.55,ll=280*sd;
+    const sh=(sx,sy,gap,open)=>{const S=gap*3.4;return hole(sx,sy-S*open*.42,gap,'shell',{S,sy,open,sd:Math.random()<.5?-1:1})};
+    const s1=sh(lx+ll*.55,ly-6,20,.55),s2=sh(x+sd*bw*.05,top+10,13,.45),s3=sh(x-sd*(bw+150),ground(x-sd*(bw+150))-2,34,.6);
+    props.push({t:'shellrock',x,g,top,bw,pts,sd,ly,lx,ll,shells:[s1,s2,s3],x0:Math.min(x-bw-330,lx+ll-30,lx-30),x1:Math.max(x+bw+330,lx+ll+30),y0:top-90,y1:g+20})}
+  for(let i=0;i<3;i++){const x=free(950),g=ground(x),sd=Math.random()<.5?-1:1,L=rand(950,1100),Hh=135,a=-sd*1.18,bx=x-sd*L*.18,by=g+30;
+    const P=(px,py)=>{const c=Math.cos(a),s2=Math.sin(a);const ux=sd*px;return [bx+ux*c-py*s2,by+ux*s2+py*c]};
+    const hs=[[.84,18],[.62,28],[.4,40]].map(([t,gap])=>{const [hx,hy]=P(L*t,0);return hole(hx,hy,gap,'breach')});
+    props.push({t:'ship',x,g,sd,L,Hh,a,bx,by,holes:hs,x0:x-L*.6,x1:x+L*.6,y0:by-L-60,y1:g+40})}
+  const lu=[];for(let i=0;i<4;i++){let x=rand(400,W-400);for(let k=0;k<100&&lu.some(u=>Math.abs(u-x)<1500);k++)x=rand(400,W-400);lu.push(x);const cy=48,hl=rand(240,290);const h=hole(x-rand(-30,30),cy+4,20,'hollow');props.push({t:'log',x,cy,hl,h,sd:Math.random()<.5?-1:1,x0:x-hl-120,x1:x+hl+120,y0:-90,y1:cy+190})}
+}
 function shelterOf(f){for(const s of shelters){if(f.r>s.gap)continue;const dx=(f.x-s.x)/s.A,dy=(f.y-s.cy)/s.B;if(dx*dx+dy*dy<1)return s}return null}
-function pushOut(f){for(const s of shelters){if(f.r<=s.gap)continue;const m=f.r*.95,A=s.A+s.th+m,B=s.B+s.th+m,dx=(f.x-s.x)/A,dy=(f.y-s.cy)/B,d=Math.hypot(dx,dy);
+function pushOut(f){for(const s of shelters){if(f.r<=s.gap||s.float)continue;const m=f.r*.95,A=s.A+s.th+m,B=s.B+s.th+m,dx=(f.x-s.x)/A,dy=(f.y-s.cy)/B,d=Math.hypot(dx,dy);
   if(d<1&&d>1e-4){f.x=s.x+dx/d*A;f.y=s.cy+dy/d*B;const nx=dx/d/A,ny=dy/d/B,nl=Math.hypot(nx,ny),ux=nx/nl,uy=ny/nl,vn=f.vx*ux+f.vy*uy;if(vn<0){f.vx-=vn*ux*1.2;f.vy-=vn*uy*1.2}}}}
 function refugeFor(f){let best=null,bd=1e9;if(f.r<=hideMax(f)){const p=nearestWeed(f.x);if(p){const x=p.x,y=ground(p.x)-p.h*.45,d=Math.hypot(x-f.x,y-f.y);if(d<bd){bd=d;best=[x,y]}}}
   for(const s of shelters){if(f.r>s.gap)continue;const d=Math.hypot(s.x-f.x,s.cy-f.y);if(d<bd){bd=d;best=[s.x,s.cy]}}return bd<900?best:null}
@@ -1172,11 +1191,11 @@ function render(){
   worldT();
   if(!LOW)drawRays();drawSurface();drawFloor();
   for(const p of weeds)if(p.x+p.w>vx0&&p.x-p.w<vx1)for(const st of p.strands)if(!st.fg)drawStrand(st);
-  drawDecor();drawFoods();drawPickups();
+  drawDecor();drawProps();drawFoods();drawPickups();
   const vis=fish.filter(f=>f.alive&&f.x+f.r*3>vx0&&f.x-f.r*3<vx1&&f.y+f.r*3>vy0&&f.y-f.r*3<vy1).sort((a,b)=>b.r-a.r);
   for(const sh of shelters)if(sh.x+sh.A+sh.th>vx0&&sh.x-sh.A-sh.th<vx1&&sh.cy-sh.B-sh.th<vy1&&sh.cy+sh.B+sh.th>vy0)drawShelter(sh,false);
   for(const f of vis)drawFish(f);
-  for(const sh of shelters)if(sh.x+sh.A+sh.th>vx0&&sh.x-sh.A-sh.th<vx1&&sh.cy-sh.B-sh.th<vy1&&sh.cy+sh.B+sh.th>vy0)drawShelter(sh,true);
+  drawPropsFront();for(const sh of shelters)if(sh.x+sh.A+sh.th>vx0&&sh.x-sh.A-sh.th<vx1&&sh.cy-sh.B-sh.th<vy1&&sh.cy+sh.B+sh.th>vy0)drawShelter(sh,true);
   drawShots();
   for(const p of weeds)if(p.x+p.w>vx0&&p.x-p.w<vx1)for(const st of p.strands)if(st.fg)drawStrand(st,true);
   drawClouds();if(net)drawNet();drawRings();drawParticles();
@@ -1286,25 +1305,48 @@ function drawShelter(sh,front){if(sh.float){drawFloatShelter(sh,front);return}co
   if(player&&player.alive&&Math.abs(player.x-x)<oA+700&&Math.abs(player.y-cy)<oB+500){const c=fits?'120,255,150':'255,110,90',a=(inside?.25:.55)+.25*Math.sin(now*3+sh.ph);
     for(const sd of[-1,1]){const gx=x+sd*(A+th*.5),gr2=ctx.createRadialGradient(gx,cy,0,gx,cy,gap*1.2);gr2.addColorStop(0,`rgba(${c},${a})`);gr2.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=gr2;ctx.beginPath();ctx.arc(gx,cy,gap*1.2,0,TAU);ctx.fill()}}
   ctx.restore()}
-function drawFloatShelter(sh,front){const {x,cy,A,B,th,gap,kind}=sh,oA=A+th,oB=B+th;ctx.save();const barrel=kind==='barrel';
-  const pal=barrel?['#8a6238','#4e341c','#b08455']:['#5b4630','#33261a','#7d6446'];
-  if(!front){// цепи к буям у поверхности
-    ctx.strokeStyle='rgba(40,48,56,.85)';ctx.lineWidth=Math.max(3,th*.25);for(const sd of barrel?[0]:[-.6,.6]){const ax=x+sd*A,ay=cy-oB*.85;ctx.beginPath();ctx.moveTo(ax,ay);ctx.quadraticCurveTo(ax+Math.sin(now*.4+sh.ph)*30,ay*.5,ax+sd*40,surfY(ax)+4);ctx.stroke();
-      if(!LOW){ctx.fillStyle='#ff7a3c';ctx.beginPath();ctx.ellipse(ax+sd*40,surfY(ax)-3,14,9,0,0,TAU);ctx.fill();ctx.fillStyle='#fff3e0';ctx.fillRect(ax+sd*40-14,surfY(ax)-5,28,4)}}
-    ctx.beginPath();ctx.ellipse(x,cy,oA,oB,0,0,TAU);const gr=ctx.createLinearGradient(0,cy-oB,0,cy+oB);gr.addColorStop(0,pal[2]);gr.addColorStop(1,pal[1]);ctx.fillStyle=gr;ctx.fill();
-    ctx.fillStyle='rgba(4,16,28,.85)';ctx.beginPath();ctx.ellipse(x,cy,A,B,0,0,TAU);ctx.fill();
-    ctx.strokeStyle='rgba(30,18,10,.5)';ctx.lineWidth=3;for(let i=-4;i<=4;i++){const xx=x+i*A/5;const hh=B*Math.sqrt(Math.max(0,1-(i/5)**2));ctx.beginPath();ctx.moveTo(xx,cy-hh*.95);ctx.lineTo(xx,cy+hh*.95);ctx.stroke()}
-    ctx.restore();return}
-  // верх и низ поверх рыбы
-  for(const [a0,a1] of [[1.08,1.92],[.08,.92]]){ctx.beginPath();ctx.ellipse(x,cy,oA,oB,0,Math.PI*a0,Math.PI*a1);ctx.ellipse(x,cy,A,B,0,Math.PI*a1,Math.PI*a0,true);ctx.closePath();
-    const gr=ctx.createLinearGradient(0,cy-oB,0,cy+oB);gr.addColorStop(0,pal[2]);gr.addColorStop(1,pal[0]);ctx.fillStyle=gr;ctx.fill();ctx.strokeStyle=pal[1];ctx.lineWidth=2.5;ctx.stroke()}
-  if(barrel){ctx.strokeStyle='#6e7880';ctx.lineWidth=Math.max(3,th*.35);for(const k of[-.55,.55]){const xx=x+k*oA;ctx.beginPath();ctx.moveTo(xx,cy-oB*Math.sqrt(1-k*k)+1);ctx.lineTo(xx,cy-B*Math.sqrt(1-k*k)-1);ctx.moveTo(xx,cy+B*Math.sqrt(1-k*k)+1);ctx.lineTo(xx,cy+oB*Math.sqrt(1-k*k)-1);ctx.stroke()}}
-  else{ctx.strokeStyle='rgba(20,12,6,.7)';ctx.lineWidth=2;for(let i=1;i<6;i++){const a=Math.PI*(1.08+i*.14);ctx.beginPath();ctx.moveTo(x+Math.cos(a)*A,cy+Math.sin(a)*B);ctx.lineTo(x+Math.cos(a)*oA,cy+Math.sin(a)*oB);ctx.stroke()}
-    ctx.strokeStyle='rgba(225,220,190,.35)';ctx.lineWidth=1.2;ctx.beginPath();for(let i=0;i<7;i++){const a=Math.PI*(1.1+i*.12);ctx.moveTo(x+Math.cos(a)*oA,cy+Math.sin(a)*oB);ctx.lineTo(x+Math.cos(a+.3)*oA*1.08,cy+Math.sin(a+.3)*oB*1.15)}ctx.stroke();
-    ctx.fillStyle='#2b1d12';ctx.fillRect(x+A*.3,cy-oB-th*2.2,th*.35,th*2.2)}
-  if(player&&player.alive&&Math.abs(player.x-x)<oA+700&&Math.abs(player.y-cy)<oB+500){const fits=player.r<=gap,c=fits?'120,255,150':'255,110,90',a=(player.shelter===sh?.25:.55)+.25*Math.sin(now*3+sh.ph);
-    for(const sd of[-1,1]){const gx=x+sd*(A+th*.5),gr2=ctx.createRadialGradient(gx,cy,0,gx,cy,gap*1.2);gr2.addColorStop(0,`rgba(${c},${a})`);gr2.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=gr2;ctx.beginPath();ctx.arc(gx,cy,gap*1.2,0,TAU);ctx.fill()}}
+function drawFloatShelter(sh,front){if(!front||!player||!player.alive)return;const {x,cy,A,gap}=sh;if(Math.abs(player.x-x)>A+700||Math.abs(player.y-cy)>500)return;
+  const fits=player.r<=gap,c=fits?'120,255,150':'255,110,90',a=(player.shelter===sh?.22:.5)+.22*Math.sin(now*3+sh.ph),R=gap*1.15;
+  for(const sd of[-1,1]){const gx=x+sd*A*.92,g2=ctx.createRadialGradient(gx,cy,0,gx,cy,R);g2.addColorStop(0,`rgba(${c},${a})`);g2.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=g2;ctx.beginPath();ctx.arc(gx,cy,R,0,TAU);ctx.fill()}}
+function smoothPath(pts){ctx.beginPath();const n=pts.length;ctx.moveTo((pts[0][0]+pts[1][0])/2,(pts[0][1]+pts[1][1])/2);for(let i=1;i<=n;i++){const p=pts[i%n],q=pts[(i+1)%n];ctx.quadraticCurveTo(p[0],p[1],(p[0]+q[0])/2,(p[1]+q[1])/2)}ctx.closePath()}
+function rockGrad(x0,y0,x1,y1){const g=ctx.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,'#7f8c8f');g.addColorStop(.5,'#566369');g.addColorStop(1,'#2f3a41');return g}
+function holeDraw(h,a,b){const g=ctx.createRadialGradient(h.x-a*.2,h.cy-b*.2,0,h.x,h.cy,a);g.addColorStop(0,'#020f1a');g.addColorStop(1,'#0b2333');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(h.x,h.cy,a,b,0,0,TAU);ctx.fill();
+  ctx.strokeStyle='rgba(18,26,30,.9)';ctx.lineWidth=4;ctx.stroke();ctx.strokeStyle='rgba(200,215,215,.32)';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(h.x,h.cy,a+4,b+4,0,Math.PI*1.05,Math.PI*1.6);ctx.stroke()}
+function shellDraw(h){const {x,sy,S,open}=h;ctx.save();ctx.translate(x,sy);ctx.scale(h.sd,1);
+  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(0,4,S*1.05,S*.12,0,0,TAU);ctx.fill();
+  ctx.fillStyle='#d9b994';ctx.strokeStyle='#6e5034';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-S,0);ctx.quadraticCurveTo(0,S*.35,S,0);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#061723';ctx.beginPath();ctx.moveTo(-S*.95,-2);ctx.quadraticCurveTo(0,-S*open*1.1,S*.95,-2);ctx.quadraticCurveTo(0,S*.12,-S*.95,-2);ctx.fill();
   ctx.restore()}
+function shellLid(h){const {x,sy,S,open}=h;ctx.save();ctx.translate(x,sy);ctx.scale(h.sd,1);ctx.rotate(-open*.35);const g=ctx.createLinearGradient(-S,-S,S*.5,0);g.addColorStop(0,'#fbe9d0');g.addColorStop(1,'#c99a6d');ctx.fillStyle=g;ctx.strokeStyle='#6e5034';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(-S,-2);ctx.bezierCurveTo(-S*.9,-S*1.05,S*.9,-S*1.05,S,-2);ctx.quadraticCurveTo(0,-S*.12,-S,-2);ctx.fill();ctx.stroke();
+  ctx.strokeStyle='rgba(120,80,45,.55)';ctx.lineWidth=2;for(let i=-4;i<=4;i++){ctx.beginPath();ctx.moveTo(i*S*.03,-S*.08);ctx.quadraticCurveTo(i*S*.16,-S*.6,i*S*.22,-S*.78+Math.abs(i)*S*.05);ctx.stroke()}ctx.restore()}
+function drawProps(){for(const p of props){if(p.x1<vx0||p.x0>vx1||p.y1<vy0||p.y0>vy1)continue;ctx.save();
+  if(p.t==='pillar'||p.t==='shellrock'){ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(p.x,p.g+8,p.bw*1.3,14,0,0,TAU);ctx.fill();
+    ctx.fillStyle=rockGrad(p.x-p.bw*p.sd,p.top,p.x+p.bw*p.sd,p.g);smoothPath(p.pts);ctx.fill();ctx.strokeStyle='#1d262b';ctx.lineWidth=5;ctx.stroke();
+    if(!LOW){ctx.strokeStyle='rgba(28,38,44,.5)';ctx.lineWidth=2.5;const hh=p.g-p.top;for(const [a,b,c,d] of [[-.6,.18,-.1,.14],[.1,.45,.5,.42],[-.4,.78,.1,.8]]){ctx.beginPath();ctx.moveTo(p.x+a*p.bw*p.sd,p.g-b*hh);ctx.lineTo(p.x+c*p.bw*p.sd,p.g-d*hh);ctx.stroke()}
+      ctx.fillStyle='#4f8f4a';for(const k of[2,6,9])if(p.pts[k]){const q=p.pts[k];ctx.beginPath();ctx.ellipse(q[0],q[1]+4,34,9,0,Math.PI,0);ctx.fill()}}
+    if(p.t==='pillar')for(const h of p.holes)holeDraw(h,h.A,h.B);
+    else{// уступ
+      const y=p.ly;ctx.fillStyle=rockGrad(p.lx,y-20,p.lx+p.ll,y+40);ctx.beginPath();ctx.moveTo(p.lx-p.sd*20,y-8);ctx.quadraticCurveTo(p.lx+p.ll*.6,y-22,p.lx+p.ll*1.05,y+4);ctx.quadraticCurveTo(p.lx+p.ll*.85,y+44,p.lx,y+56);ctx.closePath();ctx.fill();ctx.strokeStyle='#1d262b';ctx.lineWidth=5;ctx.stroke();
+      for(const h of p.shells)shellDraw(h)}}
+  else if(p.t==='ship'){const {bx,by,a,sd,L,Hh}=p;ctx.translate(bx,by);ctx.rotate(a);ctx.scale(sd,1);
+    ctx.fillStyle='#45301e';ctx.fillRect(L*.45,-Hh*.8-200,18,200);ctx.fillRect(L*.45-70,-Hh*.8-160,150,12);
+    const g=ctx.createLinearGradient(0,-Hh,0,Hh);g.addColorStop(0,'#7c5c3e');g.addColorStop(1,'#3b281a');ctx.fillStyle=g;ctx.strokeStyle='#21150c';ctx.lineWidth=5;
+    ctx.beginPath();ctx.moveTo(0,-Hh*.8);ctx.lineTo(L*.8,-Hh*.8);ctx.quadraticCurveTo(L*1.02,-Hh*.5,L,0);ctx.quadraticCurveTo(L*.9,Hh*.6,L*.7,Hh*.7);ctx.lineTo(30,Hh*.75);ctx.quadraticCurveTo(-10,0,0,-Hh*.8);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle='rgba(20,12,6,.55)';ctx.lineWidth=3;for(let i=1;i<6;i++){ctx.beginPath();ctx.moveTo(14,-Hh*.8+i*Hh*.26);ctx.lineTo(L*.86,-Hh*.8+i*Hh*.26+(i>3?10:0));ctx.stroke()}
+    if(!LOW){ctx.fillStyle='rgba(120,150,90,.5)';for(let i=0;i<6;i++){ctx.beginPath();ctx.arc(L*(.1+i*.14),-Hh*.8+((i*37)%20),10+i%3*4,0,TAU);ctx.fill()}}
+    ctx.restore();ctx.save();
+    for(const h of p.holes){holeDraw(h,h.A,h.B);ctx.strokeStyle='#21150c';ctx.lineWidth=4;for(let k=0;k<6;k++){const an=k/6*TAU+h.seed;ctx.beginPath();ctx.moveTo(h.x+Math.cos(an)*h.A,h.cy+Math.sin(an)*h.B);ctx.lineTo(h.x+Math.cos(an+.18)*h.A*1.22,h.cy+Math.sin(an+.18)*h.B*1.28);ctx.stroke()}}}
+  else if(p.t==='log'){const {x,cy,hl,sd}=p;
+    ctx.strokeStyle='#4b3522';ctx.lineWidth=13;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x+sd*hl*.45,cy-35);ctx.lineTo(x+sd*hl*.7,cy-110);ctx.moveTo(x-sd*hl*.55,cy-30);ctx.lineTo(x-sd*hl*.8,cy-85);ctx.stroke();
+    if(!LOW)for(let i=0;i<8;i++){const sx=x-hl*.85+i*hl*.24,ln=90+((i*53)%70);ctx.strokeStyle='#3f7d3a';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(sx,cy+40);ctx.bezierCurveTo(sx+12+Math.sin(now+i)*8,cy+40+ln*.4,sx-12,cy+40+ln*.75,sx+6+Math.sin(now*.8+i)*12,cy+40+ln);ctx.stroke()}
+    const g=ctx.createLinearGradient(0,cy-48,0,cy+48);g.addColorStop(0,'#8c6b49');g.addColorStop(1,'#3d2a1a');ctx.fillStyle=g;ctx.strokeStyle='#21150c';ctx.lineWidth=5;
+    ctx.beginPath();ctx.moveTo(x-hl,cy-34);ctx.quadraticCurveTo(x,cy-56,x+hl,cy-38);ctx.quadraticCurveTo(x+hl+38,cy,x+hl,cy+40);ctx.quadraticCurveTo(x,cy+56,x-hl,cy+36);ctx.quadraticCurveTo(x-hl-38,cy,x-hl,cy-34);ctx.fill();ctx.stroke();
+    const ex=x+sd*hl;ctx.fillStyle='#c9a77a';ctx.beginPath();ctx.ellipse(ex,cy,20,38,0,0,TAU);ctx.fill();ctx.stroke();ctx.strokeStyle='rgba(110,70,40,.6)';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(ex,cy,10,20,0,0,TAU);ctx.stroke();
+    ctx.strokeStyle='rgba(30,18,8,.45)';ctx.lineWidth=2.5;for(let i=0;i<6;i++){const xx=x-hl*.8+i*hl*.32;ctx.beginPath();ctx.moveTo(xx,cy-36);ctx.quadraticCurveTo(xx+18,cy,xx-8,cy+34);ctx.stroke()}
+    holeDraw(p.h,p.h.A,p.h.B)}
+  ctx.restore()}}
+function drawPropsFront(){for(const p of props){if(p.t!=='shellrock'||p.x1<vx0||p.x0>vx1||p.y1<vy0||p.y0>vy1)continue;for(const h of p.shells)shellLid(h)}}
 function surfY(x){return 5*Math.sin(x*.011+now*1.6)+3*Math.sin(x*.027-now*2.1)}
 function drawSurface(){if(vy0>60)return;ctx.beginPath();ctx.moveTo(vx0,-400);for(let x=vx0;x<=vx1;x+=24)ctx.lineTo(x,surfY(x));ctx.lineTo(vx1,-400);ctx.closePath();
   const g=ctx.createLinearGradient(0,-300,0,10);g.addColorStop(0,'rgba(190,240,255,0)');g.addColorStop(1,'rgba(220,250,255,.55)');ctx.fillStyle=g;ctx.fill();
@@ -1562,7 +1604,8 @@ function drawThreats(){if(state!=='play'||!player||!player.alive)return;const P=
 function drawPops(){if(DBG.nolabels)return;ctx.textAlign='center';ctx.textBaseline='middle';for(const p of pops){ctx.globalAlpha=Math.min(1,p.life*1.5);ctx.font=`700 ${p.s}px Rubik, system-ui, sans-serif`;const X=sx(p.x),Y=sy(p.y);ctx.lineWidth=3;ctx.strokeStyle='rgba(2,16,30,.6)';ctx.strokeText(p.txt,X,Y);ctx.fillStyle=p.c;ctx.fillText(p.txt,X,Y)}ctx.globalAlpha=1}
 function drawMini(){const w=mini.width,h=mini.height,kx=w/W,ky=h/H;mctx.clearRect(0,0,w,h);const g=mctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#1f87ad');g.addColorStop(1,'#06223e');mctx.fillStyle=g;mctx.fillRect(0,0,w,h);
   mctx.fillStyle='#6f6550';mctx.beginPath();mctx.moveTo(0,h);for(let x=0;x<=W;x+=150)mctx.lineTo(x*kx,ground(x)*ky);mctx.lineTo(w,h);mctx.fill();
-  mctx.fillStyle='rgba(200,170,140,.7)';for(const sh of shelters){if(sh.float){mctx.beginPath();mctx.ellipse(sh.x*kx,sh.cy*ky,Math.max(2,(sh.A+sh.th)*kx),Math.max(1.5,(sh.B+sh.th)*ky),0,0,TAU);mctx.fill();continue}mctx.beginPath();mctx.ellipse(sh.x*kx,ground(sh.x)*ky,Math.max(2,(sh.A+sh.th)*kx),Math.max(2,(sh.B*2+sh.th)*ky),0,Math.PI,0);mctx.fill()}
+  mctx.fillStyle='rgba(200,170,140,.7)';for(const p of props){mctx.save();mctx.fillStyle=p.t==='ship'||p.t==='log'?'rgba(150,110,70,.75)':'rgba(140,150,155,.75)';if(p.t==='log'){mctx.fillRect((p.x-p.hl)*kx,(p.cy-20)*ky,Math.max(2,p.hl*2*kx),Math.max(1.5,40*ky))}else if(p.t==='ship'){mctx.translate(p.bx*kx,p.by*ky);mctx.beginPath();mctx.moveTo(0,0);mctx.lineTo(Math.cos(p.a)*p.sd*p.L*kx,Math.sin(p.a)*p.L*ky);mctx.lineWidth=Math.max(2,p.Hh*1.4*kx);mctx.strokeStyle=mctx.fillStyle;mctx.stroke()}else{mctx.beginPath();mctx.moveTo((p.x-p.bw)*kx,p.g*ky);mctx.lineTo(p.x*kx,p.top*ky);mctx.lineTo((p.x+p.bw)*kx,p.g*ky);mctx.fill()}mctx.restore()}
+  mctx.fillStyle='rgba(200,170,140,.7)';for(const sh of shelters){if(sh.float)continue;mctx.beginPath();mctx.ellipse(sh.x*kx,ground(sh.x)*ky,Math.max(2,(sh.A+sh.th)*kx),Math.max(2,(sh.B*2+sh.th)*ky),0,Math.PI,0);mctx.fill()}
   mctx.fillStyle='rgba(110,220,110,.55)';for(const p of weeds){mctx.fillRect((p.x-p.w/2)*kx,(ground(p.x)-p.h*.85)*ky,p.w*kx,p.h*.85*ky)}
   if(net){mctx.fillStyle='rgba(255,120,80,.4)';mctx.fillRect((net.x-net.w/2)*kx,0,net.w*kx,Math.max(2,net.y*ky))}
   mctx.strokeStyle='rgba(255,255,255,.35)';mctx.lineWidth=2;mctx.strokeRect((cam.x-cw/2/cam.z)*kx,(cam.y-ch/2/cam.z)*ky,cw/cam.z*kx,ch/cam.z*ky);
@@ -1676,7 +1719,7 @@ let last=performance.now();
 function frame(ts){if(DBG.frozen){last=ts;requestAnimationFrame(frame);return}drawPreviews();const rdt=Math.min(.05,Math.max(0,(ts-last)/1000));last=ts;const dt=paused?0:rdt*timeScale;now+=dt;trackFps(rdt);update(dt,rdt);tutTick(rdt);S.tick(rdt);updStrandPush(dt);render();requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 // служебный доступ для автотестов: только в Node или со словом debug в адресе (?debug)
-if(typeof location==='undefined'||/debug/.test(location.search+location.hash))window.__malek={DBG,cam,mkFish,ground,weeds,get net(){return net},set net(v){net=v},adv(dt,n=1){for(let i=0;i<n;i++){now+=dt;update(dt,dt);tutTick(dt);updStrandPush(dt)}render()},fish,foods,EVO,mids,shelters,S,get player(){return player},get state(){return state},get death(){return deathInfo},startGame,
+if(typeof location==='undefined'||/debug/.test(location.search+location.hash))window.__malek={DBG,cam,mkFish,ground,weeds,get net(){return net},set net(v){net=v},adv(dt,n=1){for(let i=0;i<n;i++){now+=dt;update(dt,dt);tutTick(dt);updStrandPush(dt)}render()},fish,foods,EVO,mids,shelters,props,S,get player(){return player},get state(){return state},get death(){return deathInfo},startGame,
   step:(n,dt=1/60,draw=true)=>{for(let i=0;i<n;i++){now+=dt;update(dt,dt);if(draw){updStrandPush(dt);if(i%10===0)render()}}}};
 })();
 </script>
