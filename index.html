@@ -924,7 +924,9 @@ function bites(){
       if(ty(a)==='h')continue;
       if(a.r<b.r*baseRatio(a))continue;if(b.shelter&&a.r>b.shelter.gap)continue;if(tooSmall(a,b))continue;
       // укус по касанию: тело добычи — вытянутый эллипс по её курсу, пасть — круг перед мордой
-      {const mr=a.r*.33,dx=mx-b.x,dy=my-b.y,c=Math.cos(-b.ang),s2=Math.sin(-b.ang),lx=(dx*c-dy*s2)/(b.r*1.25+mr),ly=(dx*s2+dy*c)/(b.r*.6+mr);if(lx*lx+ly*ly>1)continue}
+      // игрок кусает по касанию; боты — как раньше, только центром добычи у пасти (иначе малька ловят слишком легко)
+      if(a===player&&!a.bot){const mr=a.r*.33,dx=mx-b.x,dy=my-b.y,c=Math.cos(-b.ang),s2=Math.sin(-b.ang),lx=(dx*c-dy*s2)/(b.r*1.25+mr),ly=(dx*s2+dy*c)/(b.r*.6+mr);if(lx*lx+ly*ly>1)continue}
+      else{const dx=b.x-mx,dy=b.y-my,rr=b.r*.95+a.r*.15;if(dx*dx+dy*dy>rr*rr)continue}
       if(a.r<b.r*eatRatio(a,b)){if(a.prickCd<=0){a.prickCd=2;const sp=maxSpeed(a);a.vx=-Math.cos(a.ang)*sp*1.1;a.vy=-Math.sin(a.ang)*sp*1.1;a.dashT=0;
           if(spiky(b)){a.stun=.35;a.flash=1;lose(a,need(a.L)*0.07);if(a===player){S.hit();pop(a.x,a.y-a.r*1.4,L('Укололись о шипы!','Ouch, spikes!'),'#ffb08a',15);tip(L('Травоядная с шипами: её можно съесть, только если вы крупнее в 1,4 раза (с длинными шипами — ещё больше)','A spiky herbivore: you can eat it only if you are 1.4 times bigger (even more with long spikes)'))}if(b===player){S.saved()}if(b===player)pop(b.x,b.y-b.r*1.4,L('Шипы спасли!','Spikes saved you!'),'#c8ffb0',15)}
           else if(a===player)pop(a.x,a.y-a.r*1.4,L('Панцирь не прокусить','Can’t bite through the shell'),'#ffb08a',14)}continue}
