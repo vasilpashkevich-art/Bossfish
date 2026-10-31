@@ -643,7 +643,7 @@ const hideMax=f=>f.evo.camo?9999:28;
 const baseRatio=a=>a.evo.jaw?1.1:1.2;
 function eatRatio(a,b){let r=baseRatio(a);if(spiky(b))r=Math.max(r,1.4+(b.evo.spikes?.25:0));if(b.evo.shell)r+=.2;return r}
 // рыба меньше 30% радиуса хищника для него слишком мелкая — проскальзывает сквозь зубы
-const TINY=.3;
+const TINY=.3,GAP=15;const tooSmall=(a,b)=>a.L-b.L>=GAP;
 // пузыри-усилители: одна штука в запасе, F — включить
 const PW={shield:{d:8,c:'120,230,255',n:['Щит','Shield']},speed:{d:5,c:'255,210,90',n:['Скорость','Speed']},invis:{d:5,c:'200,170,255',n:['Невидимость','Invisibility']},magnet:{d:6,c:'140,255,150',n:['Магнит','Magnet']}};
 const PW_D={shield:['Щит: выдержит один укус','Shield: survives one bite'],speed:['Скорость ×1,45 на 5 с','Speed ×1.45 for 5 s'],invis:['Невидимость на 5 с','Invisible for 5 s'],magnet:['Магнит: еда сама плывёт к вам 6 с','Magnet: food flies to you for 6 s']};
@@ -668,7 +668,7 @@ function drawPwGlyph(k,s,c){ctx.fillStyle=c;ctx.strokeStyle=c;ctx.lineWidth=s*.2
   else if(k==='speed'){ctx.moveTo(-s*.8,-s*.7);ctx.lineTo(0,0);ctx.lineTo(-s*.8,s*.7);ctx.moveTo(0,-s*.7);ctx.lineTo(s*.8,0);ctx.lineTo(0,s*.7);ctx.stroke()}
   else if(k==='invis'){ctx.moveTo(-s,0);ctx.quadraticCurveTo(0,-s*1.1,s,0);ctx.quadraticCurveTo(0,s*1.1,-s,0);ctx.stroke();ctx.beginPath();ctx.arc(0,0,s*.3,0,TAU);ctx.fill();ctx.beginPath();ctx.moveTo(-s*.8,s*.8);ctx.lineTo(s*.8,-s*.8);ctx.stroke()}
   else{ctx.arc(0,-s*.05,s*.7,Math.PI,0);ctx.moveTo(-s*.7,-s*.05);ctx.lineTo(-s*.7,s*.7);ctx.moveTo(s*.7,-s*.05);ctx.lineTo(s*.7,s*.7);ctx.stroke()}}
-const threatTo=(o,p)=>o!==p&&o.alive&&ty(o)!=='h'&&o.r>=p.r*eatRatio(o,p)&&p.r>=o.r*TINY&&p.protect<=0;
+const threatTo=(o,p)=>o!==p&&o.alive&&ty(o)!=='h'&&o.r>=p.r*eatRatio(o,p)&&!tooSmall(o,p)&&p.protect<=0;
 function allowedEvos(f){const t=ty(f);return Object.keys(EVO).filter(k=>!f.evo[k]&&EVO[k].f.includes(t)&&!(k==='dd'&&!f.evo.jet&&t==='o'&&f.L<6))}
 
 // ───────── скины и монеты ─────────
@@ -752,7 +752,7 @@ function spawnFood(t){const D=FOOD[t];const fd={t,g:D.g,s:D.s,v:D.v,x:0,y:0,vx:r
   else{fd.x=rand(60,W-60);fd.y=ground(fd.x)-fd.s*0.55;fd.vx=rand(-18,18)}
   foods.push(fd)}
 for(const t in FOOD)for(let i=0;i<FOOD[t].n;i++)spawnFood(t);
-const canEatFood=(f,fd)=>f.r>=fd.s*1.25;
+const canEatFood=(f,fd)=>f.r>=fd.s*1.25&&!(fd.own===f.id&&fd.age<2.5)&&!(fd.lv&&f.L-fd.lv>=GAP);
 const dietMul=(f,green)=>{const t=ty(f);return green?(t==='h'?1.4:t==='o'?1:0.5)*(f.evo.filter?1.15:1):(t==='c'?1.4:t==='o'?1:0.5)};
 function foodGain(f,fd){let sf=clamp(fd.s*3.5/f.r,.12,1);if(f.evo.filter&&fd.g)sf=Math.max(sf,.6);const m=dietMul(f,fd.g);return [fd.v*sf*m,fd.v*sf,m]}
 // сытость зависит от размера еды относительно рыбы, а не от уровня
@@ -780,11 +780,16 @@ function updNet(dt){
 }
 
 // ───────── гибель ─────────
+// куски после укуса: хвост, плавники, мясо — их может подъесть любая рыба
+function scatterChunks(b,by,val){const n=clamp(Math.round(b.r/7),4,8),sz=clamp(b.r*.2,3,9),hue=b.skin==='shark'||b.skin==='mecha'?205:b.skin==='lion'?10:b.skin==='betta'?310:b.skin==='gold'?44:b.skin==='clown'?22:b.hue;
+  for(let i=0;i<n;i++){const a=rand(0,TAU),sp=rand(70,170),kind=i===0?'tail':i<3?'fin':'meat';
+    foods.push({t:'chunk',kind,lv:b.L,vs:clamp(b.r*.55,6,80)*(kind==='meat'?1:.85),g:false,s:kind==='meat'?sz:sz*.85,v:val/n*(kind==='meat'?1.25:.75),x:b.x+Math.cos(a)*b.r*.4,y:b.y+Math.sin(a)*b.r*.4,vx:Math.cos(a)*sp+(by?by.vx*.2:0),vy:Math.sin(a)*sp-20,ph:rand(0,TAU),rot:rand(0,TAU),spin:rand(-4,4),hue,life:20,age:0,own:by?by.id:-1,tire:0})}
+  if(foods.length>1600)foods.splice(0,foods.length-1600)}
 function kill(b,by,cause){if(!b.alive)return;b.alive=false;b.caught=false;
   if(b===player&&!b.bot)S.death();else if(by===player&&!by.bot)S.gulp(b.r);else if(by)S.gulpAt(b.x,b.y);
   for(let i=0;i<14;i++)parts.push({x:b.x,y:b.y,vx:rand(-90,90),vy:rand(-90,90),life:.8,max:.8,r:b.r*rand(.08,.18),c:`hsl(${b.hue},60%,60%)`});
   for(let i=0;i<6;i++)bubbles.push({x:b.x+rand(-b.r,b.r),y:b.y,r:rand(2,5)+b.r*.06,vy:-rand(40,90),w:rand(0,TAU)});
-  if(by){const tot=total(b);let m=(ty(by)==='c'?1:0.65)*(b.r<by.r*TINY?.5:1);if(by.evo.hunter)m*=1.35;const raw=tot*0.07+3;by.meat+=raw;const t0=ty(by);gain(by,raw*m);by.hunger=Math.min(1,by.hunger+fill(by,b.r,m*1.4)+.1);by.kills++;feedRiders(by,raw*m,true);if(b.nemesis&&by===player&&!by.bot){wallet.coins+=50;saveWallet();pop(by.x,by.y-by.r*1.8,L('Обидчик съеден! +50 монет','Nemesis eaten! +50 coins'),'#ffd25a',17);S.crown()}by.jaw=1;
+  if(by){const tot=total(b);let m=ty(by)==='c'?1:0.65;if(by.evo.hunter)m*=1.35;const raw=tot*0.07+3;by.meat+=raw*.65;const t0=ty(by);gain(by,raw*m*.65);if(cause==='eaten')scatterChunks(b,by,raw*.35);by.hunger=Math.min(1,by.hunger+fill(by,b.r,m*1.4)+.1);by.kills++;feedRiders(by,raw*m,true);if(b.nemesis&&by===player&&!by.bot){wallet.coins+=50;saveWallet();pop(by.x,by.y-by.r*1.8,L('Обидчик съеден! +50 монет','Nemesis eaten! +50 coins'),'#ffd25a',17);S.crown()}by.jaw=1;
     if(by===player){pop(b.x,b.y,'+'+Math.round(raw*m),'#ffd27a',17);const t1=ty(by);if(t1!==t0)typeTip(t1)}}
   const top=isTop(b)||isTop(by);
   if(cause==='net')feedMsg(L(`Сеть поймала <b>${esc(b.name)}</b> (ур. ${b.L})`,`A net caught <b>${esc(b.name)}</b> (lv. ${b.L})`));
@@ -846,7 +851,7 @@ function botThink(f){
     if(td<threat.r*3+60){if(f.power&&f.power!=='magnet')usePower(f);else if(f.evo.shock&&td<f.r*4+90)shock(f);else if(f.evo.ink)inkUp(f);else dash(f)}
     f.gx=gx;f.gy=gy;f.thr=thr;return}
   if(t!=='h'||f.evo.torpedo){let best=null,bs=0;
-    for(const o of fish){if(o===f||!o.alive||o.protect>0||o.id===f.ignore)continue;if(f.r<o.r*eatRatio(f,o))continue;if(o.r<f.r*TINY)continue;if(t==='h')continue;if(total(o)+3<need(f.L)*0.35)continue;const d=Math.hypot(o.x-f.x,o.y-f.y);if(d>(f.hunger>.7?f.r*4+90:vis))continue;
+    for(const o of fish){if(o===f||!o.alive||o.protect>0||o.id===f.ignore)continue;if(f.r<o.r*eatRatio(f,o))continue;if(tooSmall(f,o))continue;if(t==='h')continue;if(total(o)+3<need(f.L)*0.35)continue;const d=Math.hypot(o.x-f.x,o.y-f.y);if(d>(f.hunger>.7?f.r*4+90:vis))continue;
       if(o.shelter&&f.r>o.shelter.gap)continue;if(o.hidden&&d>(f.evo.eyes?450:o.r*2.5+f.r))continue;const s=(total(o)+5)/(d+80);if(s>bs){bs=s;best=o}}
     if(best){if(f.tgt!==best.id){f.chaseT=0}f.tgt=best.id;f.chaseT+=0.22;if(f.chaseT>8){f.ignore=best.id;f.ignT=6;f.chaseT=0}
       const lead=Math.min(0.5,Math.hypot(best.x-f.x,best.y-f.y)/400);gx=best.x+best.vx*lead-f.x;gy=best.y+best.vy*lead-f.y;
@@ -917,9 +922,9 @@ function bites(){
       if(a.tailCd<=0&&b.r>a.r*1.25&&!b.caught){const tx=b.x-Math.cos(b.ang)*b.r*1.85,ty2=b.y-Math.sin(b.ang)*b.r*1.85,rr=b.r*.55+a.r*.6,ddx=tx-mx,ddy=ty2-my;
         if(ddx*ddx+ddy*ddy<rr*rr&&Math.hypot(a.vx,a.vy)>30){tailBite(a,b);break}}
       if(ty(a)==='h')continue;
-      if(a.r<b.r*baseRatio(a))continue;if(b.shelter&&a.r>b.shelter.gap)continue;const me=a===player&&!a.bot;if(b.r<a.r*TINY&&!me)continue;
-      // игрок ест любую рыбу меньше себя, мелкую ловить легче — зона укуса шире
-      const dx=b.x-mx,dy=b.y-my,rr=b.r*.95+a.r*(me&&b.r<a.r*.5?.32:.15);if(dx*dx+dy*dy>rr*rr)continue;
+      if(a.r<b.r*baseRatio(a))continue;if(b.shelter&&a.r>b.shelter.gap)continue;if(tooSmall(a,b))continue;
+      // укус по касанию: тело добычи — вытянутый эллипс по её курсу, пасть — круг перед мордой
+      {const mr=a.r*.33,dx=mx-b.x,dy=my-b.y,c=Math.cos(-b.ang),s2=Math.sin(-b.ang),lx=(dx*c-dy*s2)/(b.r*1.25+mr),ly=(dx*s2+dy*c)/(b.r*.6+mr);if(lx*lx+ly*ly>1)continue}
       if(a.r<b.r*eatRatio(a,b)){if(a.prickCd<=0){a.prickCd=2;const sp=maxSpeed(a);a.vx=-Math.cos(a.ang)*sp*1.1;a.vy=-Math.sin(a.ang)*sp*1.1;a.dashT=0;
           if(spiky(b)){a.stun=.35;a.flash=1;lose(a,need(a.L)*0.07);if(a===player){S.hit();pop(a.x,a.y-a.r*1.4,L('Укололись о шипы!','Ouch, spikes!'),'#ffb08a',15);tip(L('Травоядная с шипами: её можно съесть, только если вы крупнее в 1,4 раза (с длинными шипами — ещё больше)','A spiky herbivore: you can eat it only if you are 1.4 times bigger (even more with long spikes)'))}if(b===player){S.saved()}if(b===player)pop(b.x,b.y-b.r*1.4,L('Шипы спасли!','Spikes saved you!'),'#c8ffb0',15)}
           else if(a===player)pop(a.x,a.y-a.r*1.4,L('Панцирь не прокусить','Can’t bite through the shell'),'#ffb08a',14)}continue}
@@ -970,10 +975,12 @@ function updFood(dt){
         else{fd.tire=Math.max(0,fd.tire-dt*.6);if(fd.t==='minnow'){const tx=fd.sc.x+fd.ox,ty2=fd.sc.y+fd.oy;fd.vx=lerp(fd.vx,(tx-fd.x)*1.5+fd.sc.vx,Math.min(1,dt*3));fd.vy=lerp(fd.vy,(ty2-fd.y)*1.5+fd.sc.vy,Math.min(1,dt*3))}
           else{const m=big?35:25;fd.vx=clamp(fd.vx+rand(-50,50)*dt,-m,m);fd.vy=clamp(fd.vy+rand(-40,40)*dt,-m*.6,m*.6)}}
         fd.x+=fd.vx*dt;fd.y+=fd.vy*dt;break}
-      case 'crab':if(Math.random()<dt*.3)fd.vx=rand(-20,20);fd.x+=fd.vx*dt;break}
+      case 'crab':if(Math.random()<dt*.3)fd.vx=rand(-20,20);fd.x+=fd.vx*dt;break;
+      case 'chunk':fd.age+=dt;fd.life-=dt;if(fd.life<=0)fd.dead=true;const k=Math.exp(-dt*2.2);fd.vx*=k;fd.vy=fd.vy*k+22*dt;fd.x+=fd.vx*dt;fd.y+=fd.vy*dt;fd.rot+=fd.spin*dt;fd.spin*=Math.exp(-dt*.6);break}
     for(const f of lures){if(!canEatFood(f,fd)||fd.t==='fruit'||fd.t==='crab')continue;const mx=f.x+Math.cos(f.ang)*f.r*1.1,my=f.y+Math.sin(f.ang)*f.r*1.1,dx=mx-fd.x,dy=my-fd.y,R=f.r*5+120;if(dx>R||dx<-R||dy>R||dy<-R)continue;const d=Math.hypot(dx,dy)||1;if(d<R){const p=(60+f.r)*dt*(1-d/R*.5);fd.x+=dx/d*p;fd.y+=dy/d*p}}
     fd.x=clamp(fd.x,20,W-20);const g=ground(fd.x);
     if(fd.t==='crab')fd.y=g-fd.s*.55;else if(fd.t!=='fruit')fd.y=clamp(fd.y,40,g-fd.s-4)}
+  if(foods.some(fd=>fd.dead&&fd.t==='chunk')){for(let i=foods.length-1;i>=0;i--)if(foods[i].dead&&foods[i].t==='chunk')foods.splice(i,1)}
   foodClock-=dt;if(foodClock<=0){foodClock=.5;const cnt={};for(const fd of foods)cnt[fd.t]=(cnt[fd.t]||0)+1;
     for(const t in FOOD){const def=FOOD[t].n-(cnt[t]||0);if(def<=0||Math.random()>(RATE[t]||1))continue;for(let i=0;i<Math.min(def,Math.ceil(FOOD[t].n/25));i++)spawnFood(t)}}
 }
@@ -1462,7 +1469,7 @@ function drawDecor(){for(const d of decor){if(d.x<vx0-80||d.x>vx1+80)continue;co
     ctx.fillStyle=`hsl(${d.hue},50%,38%)`;ctx.beginPath();ctx.ellipse(0,-2*s,8*s,6*s,0,0,TAU);ctx.fill()}
   else{const s=d.s*.8;ctx.fillStyle='#e9d8c0';ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,11*s,Math.PI,0);ctx.fill();ctx.strokeStyle='#a48c70';ctx.lineWidth=1.2;for(let i=1;i<5;i++){const a=Math.PI+i*Math.PI/5;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*11*s,Math.sin(a)*11*s);ctx.stroke()}}
   ctx.restore()}}
-function drawFoods(){for(const fd of foods){const m=fd.s*2;if(fd.x<vx0-m||fd.x>vx1+m||fd.y<vy0-m||fd.y>vy1+m)continue;const s=fd.s;ctx.save();ctx.translate(fd.x,fd.y);
+function drawFoods(){for(const fd of foods){const m=(fd.vs||fd.s)*2;if(fd.x<vx0-m||fd.x>vx1+m||fd.y<vy0-m||fd.y>vy1+m)continue;const s=fd.s;ctx.save();ctx.translate(fd.x,fd.y);
   switch(fd.t){
     case 'speck':ctx.fillStyle='rgba(140,255,120,.16)';ctx.beginPath();ctx.arc(0,0,s*2.6,0,TAU);ctx.fill();ctx.fillStyle='#5fd65a';ctx.beginPath();ctx.ellipse(0,0,s*1.15,s*.8,fd.ph*.6,0,TAU);ctx.fill();ctx.fillStyle='#c9ffb8';ctx.beginPath();ctx.arc(-s*.3,-s*.25,s*.35,0,TAU);ctx.fill();break;
     case 'clump':ctx.fillStyle='rgba(140,255,120,.14)';ctx.beginPath();ctx.arc(0,0,s*2.1,0,TAU);ctx.fill();for(let i=0;i<5;i++){const a=i*1.26+fd.ph*.2;ctx.fillStyle=i%2?'#4cbf55':'#6fdc6a';ctx.beginPath();ctx.arc(Math.cos(a)*s*.55,Math.sin(a)*s*.45,s*.6,0,TAU);ctx.fill()}ctx.fillStyle='rgba(220,255,200,.6)';ctx.beginPath();ctx.arc(-s*.3,-s*.35,s*.25,0,TAU);ctx.fill();break;
@@ -1486,7 +1493,13 @@ function drawFoods(){for(const fd of foods){const m=fd.s*2;if(fd.x<vx0-m||fd.x>v
       ctx.lineWidth=s*.09;for(let i=0;i<6;i++){const yy=(i/5-.5)*s*.5;ctx.beginPath();ctx.moveTo(-s*.4,yy);ctx.quadraticCurveTo(-s*1.1,yy+w*s*.2*(i%2?1:-1),-s*(1.6+i%2*.25),yy*1.8);ctx.stroke()}
       const gs=ctx.createLinearGradient(0,-s*.35,0,s*.35);gs.addColorStop(0,'#ff8c6a');gs.addColorStop(1,'#c4402f');ctx.fillStyle=gs;ctx.beginPath();ctx.moveTo(-s*.45,-s*.3);ctx.quadraticCurveTo(s*.8,-s*.38,s*1.25,0);ctx.quadraticCurveTo(s*.8,s*.38,-s*.45,s*.3);ctx.closePath();ctx.fill();ctx.strokeStyle='#8a2a1e';ctx.lineWidth=1.6;ctx.stroke();
       ctx.fillStyle='#ffb090';ctx.beginPath();ctx.moveTo(s*.9,-s*.15);ctx.lineTo(s*1.35,-s*.5);ctx.lineTo(s*1.2,0);ctx.lineTo(s*1.35,s*.5);ctx.lineTo(s*.9,s*.15);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-s*.3,-s*.12,s*.12,0,TAU);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(-s*.32,-s*.12,s*.06,0,TAU);ctx.fill();break}
-    case 'crab':{const w=Math.sin(fd.ph*10);ctx.strokeStyle='#8f2a17';ctx.lineWidth=2;for(let i=0;i<3;i++)for(const sd of[-1,1]){ctx.beginPath();ctx.moveTo(sd*s*.5,0);ctx.lineTo(sd*s*(1+i*.15),-s*.1+(i%2?w:-w)*2);ctx.lineTo(sd*s*(1.2+i*.15),s*.5);ctx.stroke()}
+    case 'chunk':{ctx.globalAlpha=Math.min(1,fd.life/3);ctx.rotate(fd.rot);const s=fd.vs,H=fd.hue,sk=`hsl(${H},55%,45%)`,dk=`hsl(${H},50%,20%)`;ctx.lineWidth=Math.max(.7,s*.14);ctx.strokeStyle=dk;
+  if(fd.kind==='tail'){ctx.fillStyle=sk;ctx.beginPath();ctx.moveTo(s*.5,-s*.2);ctx.lineTo(-s*.9,-s*1.1);ctx.quadraticCurveTo(-s*.45,0,-s*.9,s*1.1);ctx.lineTo(s*.5,s*.2);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#f3a3a0';ctx.beginPath();ctx.ellipse(s*.5,0,s*.16,s*.24,0,0,TAU);ctx.fill()}
+  else if(fd.kind==='fin'){ctx.fillStyle=`hsla(${H+10},55%,50%,.9)`;ctx.beginPath();ctx.moveTo(-s*.7,s*.4);ctx.quadraticCurveTo(-s*.4,-s*.9,s*.8,-s*.6);ctx.lineTo(s*.5,s*.4);ctx.closePath();ctx.fill();ctx.stroke();ctx.strokeStyle=`hsla(${H},60%,80%,.45)`;ctx.lineWidth=Math.max(.5,s*.07);ctx.beginPath();for(const k of[-.3,.1,.45]){ctx.moveTo(k*s,s*.35);ctx.lineTo(k*s+s*.2,-s*.55)}ctx.stroke()}
+  else{ctx.fillStyle='#e9867f';ctx.beginPath();ctx.ellipse(0,0,s*.95,s*.65,0,0,TAU);ctx.fill();ctx.fillStyle=sk;ctx.beginPath();ctx.ellipse(0,-s*.2,s*.95,s*.45,0,Math.PI,0);ctx.fill();ctx.strokeStyle=dk;ctx.beginPath();ctx.ellipse(0,0,s*.95,s*.65,0,0,TAU);ctx.stroke();
+    ctx.strokeStyle='rgba(255,220,215,.7)';ctx.lineWidth=Math.max(.5,s*.08);ctx.beginPath();ctx.moveTo(-s*.5,s*.15);ctx.quadraticCurveTo(0,s*.35,s*.5,s*.15);ctx.stroke()}
+  break}
+case 'crab':{const w=Math.sin(fd.ph*10);ctx.strokeStyle='#8f2a17';ctx.lineWidth=2;for(let i=0;i<3;i++)for(const sd of[-1,1]){ctx.beginPath();ctx.moveTo(sd*s*.5,0);ctx.lineTo(sd*s*(1+i*.15),-s*.1+(i%2?w:-w)*2);ctx.lineTo(sd*s*(1.2+i*.15),s*.5);ctx.stroke()}
       for(const sd of[-1,1]){ctx.fillStyle='#e8573b';ctx.beginPath();ctx.ellipse(sd*s*1.05,-s*.6,s*.38,s*.28,sd*.5,0,TAU);ctx.fill();ctx.strokeStyle='#8f2a17';ctx.lineWidth=1.2;ctx.stroke()}
       const gc=ctx.createLinearGradient(0,-s*.7,0,s*.2);gc.addColorStop(0,'#ff8a5c');gc.addColorStop(1,'#c23b22');ctx.fillStyle=gc;ctx.beginPath();ctx.ellipse(0,-s*.15,s*.85,s*.55,0,0,TAU);ctx.fill();ctx.strokeStyle='#8f2a17';ctx.lineWidth=1.4;ctx.stroke();
       ctx.fillStyle='#fff';for(const sd of[-1,1]){ctx.beginPath();ctx.arc(sd*s*.25,-s*.72,s*.14,0,TAU);ctx.fill()}ctx.fillStyle='#200';for(const sd of[-1,1]){ctx.beginPath();ctx.arc(sd*s*.25,-s*.72,s*.07,0,TAU);ctx.fill()}break}}
@@ -1497,7 +1510,7 @@ function drawFish(f){
   const r=f.r,Lb=r*2.5,N=10,m=mf(f),herb=clamp((.5-m)*2,0,1),carn=clamp((m-.5)*2,0,1),h=SK==='clown'?22:SK==='tiger'?205:SK==='neon'?228:SK==='gold'?44:SK==='rainbow'?(now*70+f.id*37)%360:SK==='shark'?205:SK==='mecha'?210:SK==='lion'?10:SK==='betta'?(320+Math.sin(now*.6+f.id)*28):f.hue,sat=SK==='clown'?96:SK==='tiger'?16:SK==='neon'?40:SK==='gold'?92:SK==='rainbow'?85:SK==='shark'?20:SK==='mecha'?12:SK==='lion'?62:SK==='betta'?78:58,E=f.evo,lw=Math.max(.9,r*.06);
   const SH=SK&&SHAPES.includes(SK)?SK:null,SHK=SH==='shark'||SH==='mecha';
   ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.ang);ctx.scale(1,f.roll);
-  let alpha=1;if(f.hidden&&f!==player)alpha=(f.pw.invis>0||(E.cham&&f.still>.8))?.16:.42;if(f===player&&f.hidden)alpha=(f.pw.invis>0||(E.cham&&f.still>.8))?.45:.75;if(f.protect>0)alpha*=.55+.35*Math.sin(now*20);ctx.globalAlpha=alpha;
+  let alpha=player&&player.alive&&f!==player&&tooSmall(player,f)?.45:1;if(f.hidden&&f!==player)alpha=(f.pw.invis>0||(E.cham&&f.still>.8))?.16:.42;if(f===player&&f.hidden)alpha=(f.pw.invis>0||(E.cham&&f.still>.8))?.45:.75;if(f.protect>0)alpha*=.55+.35*Math.sin(now*20);ctx.globalAlpha=alpha;
   if(f.wind>0){const k=1-f.wind/.32,gl=ctx.createRadialGradient(0,0,r*.4,0,0,r*2.4);gl.addColorStop(0,`rgba(255,90,60,${.25+.4*k})`);gl.addColorStop(1,'rgba(255,90,60,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,r*2.4,0,TAU);ctx.fill()}
   if(f.poison>0){ctx.fillStyle='rgba(140,255,90,.18)';ctx.beginPath();ctx.ellipse(0,0,r*1.7,r*.9,0,0,TAU);ctx.fill()}
   if(f===player){const gl=ctx.createRadialGradient(0,0,r*.5,0,0,r*2.6);gl.addColorStop(0,'rgba(255,240,190,.16)');gl.addColorStop(1,'rgba(255,240,190,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,r*2.6,0,TAU);ctx.fill()}
@@ -1774,7 +1787,7 @@ for(let i=0;i<(isTouch?60:110);i++)snow.push({x:rand(0,W),y:rand(0,H),r:rand(.6,
 function drawLabels(vis){if(DBG.nolabels)return;ctx.textAlign='center';ctx.textBaseline='bottom';let leader=null;for(const f of fish)if(f.alive&&(!leader||total(f)>total(leader)))leader=f;
   for(const f of vis){if(f!==player&&f.hidden&&!(player&&player.evo.eyes&&Math.hypot(f.x-player.x,f.y-player.y)<450))continue;
     const X=sx(f.x),Y=sy(f.y-f.r*1.15)-4;if(X<-50||X>cw+50||Y<-30||Y>ch+40)continue;const fs=clamp(f.r*cam.z*.42,10,16);ctx.font=`600 ${fs}px Rubik, system-ui, sans-serif`;
-    let col='rgba(233,251,255,.9)';if(player&&player.alive&&f!==player){if(threatTo(f,player))col='#ff8a75';else if(ty(player)!=='h'&&player.r>=f.r*eatRatio(player,f))col=(f.shelter&&player.r>f.shelter.gap)||f.protect>0||f.attached?'rgba(170,185,195,.8)':'#9dff9a'}if(f===player)col='#ffd27a';
+    let col='rgba(233,251,255,.9)';if(player&&player.alive&&f!==player){if(tooSmall(player,f))col='rgba(160,172,182,.6)';else if(threatTo(f,player))col='#ff8a75';else if(ty(player)!=='h'&&player.r>=f.r*eatRatio(player,f))col=(f.shelter&&player.r>f.shelter.gap)||f.protect>0||f.attached?'rgba(170,185,195,.8)':'#9dff9a'}if(f===player)col='#ffd27a';
     const txt=(f.nemesis?'⚔ ':'')+f.name+'  '+f.L;if(f.nemesis&&f!==player)col='#ff6a5a';ctx.lineWidth=3;ctx.strokeStyle='rgba(2,16,30,.65)';ctx.strokeText(txt,X,Y);ctx.fillStyle=col;ctx.fillText(txt,X,Y);
     if(f===leader){const cy=Y-fs-4,s=Math.max(7,fs*.6);ctx.fillStyle='#ffc75a';ctx.beginPath();ctx.moveTo(X-s,cy);ctx.lineTo(X-s,cy-s*.9);ctx.lineTo(X-s*.45,cy-s*.4);ctx.lineTo(X,cy-s*1.1);ctx.lineTo(X+s*.45,cy-s*.4);ctx.lineTo(X+s,cy-s*.9);ctx.lineTo(X+s,cy);ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(60,30,0,.6)';ctx.lineWidth=1;ctx.stroke()}}}
 // ───────── обучение в первые минуты: показываем, а не рассказываем ─────────
