@@ -1051,7 +1051,7 @@ function startGame(){
   const nm=($('nick').value||'').trim().slice(0,16)||L('Малёк','Fry');try{localStorage.setItem('malek-name',nm)}catch(e){}
   {const i=player?fish.indexOf(player):-1;if(i>=0)fish.splice(i,1)}player=null;resetSea();
   // малёк рождается в маленьком гроте подальше от хищников
-  let best=null,bs=-1;for(const sh of shelters){if(sh.gap>24)continue;let dmin=1e9;for(const f of fish)if(f.alive&&ty(f)!=='h'&&f.L>1)dmin=Math.min(dmin,Math.hypot(f.x-sh.x,f.y-sh.cy));if(dmin>bs){bs=dmin;best=[sh.x+rand(-sh.A*.3,sh.A*.3),sh.cy]}}
+  let best=null,bs=-1;for(const sh of shelters){if(sh.gap>24||sh.float)continue;let dmin=1e9;for(const f of fish)if(f.alive&&ty(f)!=='h'&&f.L>1)dmin=Math.min(dmin,Math.hypot(f.x-sh.x,f.y-sh.cy));if(dmin>bs){bs=dmin;best=[sh.x+rand(-sh.A*.3,sh.A*.3),sh.cy]}}
   player=mkFish({name:nm,x:best[0],y:best[1],L:1,protect:8});player.skin=wallet.skin;toggleHelp(false);wasKing=false;joy.on=false;
   if(isTouch){try{const de=document.documentElement;if(!document.fullscreenElement&&de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'}).catch(()=>{})}catch(e){}}player.hueOff=0;fish.push(player);spect=null;maxL=1;
   clearSave();enterPlay();tutStart();
