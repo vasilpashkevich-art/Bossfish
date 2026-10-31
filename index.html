@@ -376,13 +376,13 @@ body[data-lang="en"] .ru,body:not([data-lang="en"]) .en{display:none!important}
           <li><b>Укус за хвост.</b> Догоните рыбу крупнее себя сзади и ткнитесь ей в хвост. Она теряет часть роста и на секунду замедляется, вы получаете кусок роста. Можно раз в 3,5 секунды, даже травоядной. Боты тоже так охотятся на рыбу в короне.</li>
           <li>Рыба, которая плывёт от вас, не опасна, пока не развернётся.</li>
           <li><b>Пузыри-усилители</b> — светящиеся пузыри в толще воды. Можно держать один, F или кнопка — включить. Новый пузырь заменяет старый. <span style="color:#78e6ff">Щит</span> выдерживает один укус (8 с), <span style="color:#ffd25a">Скорость</span> ×1,45 на 5 с, <span style="color:#c8aaff">Невидимость</span> 5 с, <span style="color:#8cff96">Магнит</span> тянет еду 6 с.</li>
-          <li><b>Укрытия повыше дна:</b> пещеры в скалах-столбах, гигантские раковины на уступах, пробоины в затонувших кораблях и дупла в корягах у поверхности. Внутрь пролезет только тот, кто меньше входа.</li>
+          <li><b>Укрытия повыше дна:</b> пещеры в скалах-столбах, гигантские раковины на уступах и пробоины в затонувших кораблях. Внутрь пролезет только тот, кто меньше входа.</li>
         </ul></div>
         <div class="en"><ul>
           <li><b>Tail bite.</b> Catch up with a bigger fish from behind and bump its tail. It loses some growth and slows down for a second, and you gain growth. Once every 3.5 s, herbivores too. Bots hunt the crowned fish this way as well.</li>
           <li>A fish swimming away from you is harmless until it turns around.</li>
           <li><b>Power bubbles</b> glow in open water. You can hold one; press F or the button to use it. A new bubble replaces the old one. <span style="color:#78e6ff">Shield</span> survives one bite (8 s), <span style="color:#ffd25a">Speed</span> ×1.45 for 5 s, <span style="color:#c8aaff">Invisibility</span> 5 s, <span style="color:#8cff96">Magnet</span> pulls food for 6 s.</li>
-          <li><b>Shelters above the bottom:</b> caves in rock pillars, giant shells on ledges, holes in sunken ships and hollow logs near the surface. Only fish smaller than the opening fit inside.</li>
+          <li><b>Shelters above the bottom:</b> caves in rock pillars, giant shells on ledges and holes in sunken ships. Only fish smaller than the opening fit inside.</li>
         </ul></div>
       </section>
       <section>
@@ -521,7 +521,7 @@ function strandPoint(st,fr,t){const g=ground(st.x);const sw=Math.sin(t*0.9+st.ph
 // gap — радиус самой крупной рыбы, которая пролезает внутрь. Внутри её не видно и не достать тем, кто крупнее.
 const shelters=[],props=[];{const gaps=[16,20,24,28,33,38,44,52,62];const n=21;const xs=[];for(let i=0;i<n;i++)xs.push((i+.5)/n*W+rand(-180,180));xs.sort(()=>Math.random()-.5);
   xs.forEach((x,i)=>{const gap=gaps[i%gaps.length],A=gap*3.1,B=gap*1.55,th=16+gap*.55;const g=ground(x);shelters.push({x,gap,A,B,th,cy:g-B-6,kind:gap<=24?'rock':gap<=38?'coral':'hull',seed:Math.random()*99,ph:rand(0,TAU)})});
-  // в толще воды: скалы-столбы с пещерами, скалы с раковинами, корабли носом вверх, коряги у поверхности.
+  // в толще воды: скалы-столбы с пещерами, скалы с раковинами, корабли носом вверх, .
   // Сами конструкции — фон (крупные рыбы проплывают перед ними), укрытия — только дыры, раковины и дупла.
   const used=[],free=w=>{for(let k=0;k<200;k++){const x=rand(400,W-400);if(used.every(u=>Math.abs(u-x)>w)){used.push(x);return x}}const x=rand(400,W-400);used.push(x);return x};
   const hole=(x,cy,gap,kind,extra)=>{const h=Object.assign({x,cy,gap,A:gap*2.6,B:gap*1.3,th:0,kind,float:true,seed:Math.random()*99,ph:rand(0,TAU)},extra);shelters.push(h);return h};
@@ -541,7 +541,6 @@ const shelters=[],props=[];{const gaps=[16,20,24,28,33,38,44,52,62];const n=21;c
     const P=(px,py)=>{const c=Math.cos(a),s2=Math.sin(a);const ux=sd*px;return [bx+ux*c-py*s2,by+ux*s2+py*c]};
     const hs=[[.84,18],[.62,28],[.4,40]].map(([t,gap])=>{const [hx,hy]=P(L*t,0);return hole(hx,hy,gap,'breach')});
     props.push({t:'ship',x,g,sd,L,Hh,a,bx,by,holes:hs,x0:x-L*.6,x1:x+L*.6,y0:by-L-60,y1:g+40})}
-  const lu=[];for(let i=0;i<4;i++){let x=rand(400,W-400);for(let k=0;k<100&&lu.some(u=>Math.abs(u-x)<1500);k++)x=rand(400,W-400);lu.push(x);const cy=48,hl=rand(240,290);const h=hole(x-rand(-30,30),cy+4,20,'hollow');props.push({t:'log',x,cy,hl,h,sd:Math.random()<.5?-1:1,x0:x-hl-120,x1:x+hl+120,y0:-90,y1:cy+190})}
 }
 function shelterOf(f){for(const s of shelters){if(f.r>s.gap)continue;const dx=(f.x-s.x)/s.A,dy=(f.y-s.cy)/s.B;if(dx*dx+dy*dy<1)return s}return null}
 function pushOut(f){for(const s of shelters){if(f.r<=s.gap||s.float)continue;const m=f.r*.95,A=s.A+s.th+m,B=s.B+s.th+m,dx=(f.x-s.x)/A,dy=(f.y-s.cy)/B,d=Math.hypot(dx,dy);
