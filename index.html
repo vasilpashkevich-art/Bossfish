@@ -544,7 +544,7 @@ const stageName=l=>l>=50?L('Хозяин глубин','Master of the deep'):l>=
 const fmtT=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0')};
 
 const cv=$('c'),mini=$('mini'),mctx=mini.getContext('2d');let ctx=cv.getContext('2d');
-let cw=0,ch=0,dpr=1;
+let cw=0,ch=0,dpr=1;const R3D=typeof window!=='undefined'&&!!window.__R3D&&typeof THREE!=='undefined';
 let isTouch=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
 function setTouch(v){isTouch=v;document.body.classList.toggle('touch',v)}setTouch(isTouch);
 // ───────── качество графики: авто / высокое / низкое ─────────
@@ -1430,8 +1430,18 @@ function updHud(){const f=player;if(!f||!f.alive)return;$('lvl').textContent=L('
 const sx=x=>(x-cam.x)*cam.z+cw/2,sy=y=>(y-cam.y)*cam.z+ch/2;
 let vx0,vx1,vy0,vy1;
 function worldT(p=1){ctx.setTransform(dpr*cam.z,0,0,dpr*cam.z,dpr*(cw/2-cam.x*p*cam.z),dpr*(ch/2-cam.y*cam.z))}
+/*@R3D@*/
+let r3last=0;
+function render3D(){const t=performance.now(),dt=Math.min(.05,(t-(r3last||t))/1000)||1/60;r3last=t;R3.render(dt);
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,cw,ch);worldT();
+  drawFoods();drawPickups();if(ev&&ev.k==='squid'&&ev.ph==='on')drawSquid(ev.sq,1);if(squidGone)drawSquid(squidGone,Math.max(0,1-squidGone.t/3.5));
+  for(const sh of shelters)if(sh.x+sh.A>vx0&&sh.x-sh.A<vx1&&sh.cy-sh.B<vy1&&sh.cy+sh.B>vy0)drawFloatShelter(sh,true);
+  drawShots();if(ev&&ev.k==='gold'&&ev.ph==='on')drawGold();if(ev&&ev.k==='trawl')drawTrawl();drawClouds();if(net)drawNet();drawRings();drawParticles();
+  ctx.setTransform(dpr,0,0,dpr,0,0);const vis=fish.filter(f=>f.alive&&f.x+f.r*3>vx0&&f.x-f.r*3<vx1&&f.y+f.r*3>vy0&&f.y-f.r*3<vy1);
+  drawNight();drawLabels(vis);drawThreats();drawTut();drawPops();drawNetWarn();drawJoy();miniT-=1/60;if(miniT<=0){miniT=LOW?.2:.05;drawMini()}}
 function render(){
   const z=cam.z;vx0=cam.x-cw/2/z-60;vx1=cam.x+cw/2/z+60;vy0=cam.y-ch/2/z-60;vy1=cam.y+ch/2/z+60;
+  if(R3D){render3D();return}
   ctx.setTransform(dpr,0,0,dpr,0,0);
   const g=ctx.createLinearGradient(0,sy(0),0,sy(H));g.addColorStop(0,'#3fb4cf');g.addColorStop(.22,'#1a7fa6');g.addColorStop(.55,'#0c4670');g.addColorStop(1,'#041a33');
   ctx.fillStyle=g;ctx.fillRect(0,0,cw,ch);
@@ -1629,7 +1639,7 @@ function drawDecor(){for(const d of decor){if(d.x<vx0-80||d.x>vx1+80)continue;co
     ctx.fillStyle=`hsl(${d.hue},50%,38%)`;ctx.beginPath();ctx.ellipse(0,-2*s,8*s,6*s,0,0,TAU);ctx.fill()}
   else{const s=d.s*.8;ctx.fillStyle='#e9d8c0';ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,11*s,Math.PI,0);ctx.fill();ctx.strokeStyle='#a48c70';ctx.lineWidth=1.2;for(let i=1;i<5;i++){const a=Math.PI+i*Math.PI/5;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*11*s,Math.sin(a)*11*s);ctx.stroke()}}
   ctx.restore()}}
-function drawFoods(){for(const fd of foods){const m=(fd.vs||fd.s)*2;if(fd.x<vx0-m||fd.x>vx1+m||fd.y<vy0-m||fd.y>vy1+m)continue;const s=fd.s;ctx.save();ctx.translate(fd.x,fd.y);
+function drawFoods(){for(const fd of foods){if(R3D&&R3.foodTypes.has(fd.t))continue;const m=(fd.vs||fd.s)*2;if(fd.x<vx0-m||fd.x>vx1+m||fd.y<vy0-m||fd.y>vy1+m)continue;const s=fd.s;ctx.save();ctx.translate(fd.x,fd.y);
   switch(fd.t){
     case 'speck':ctx.fillStyle='rgba(140,255,120,.16)';ctx.beginPath();ctx.arc(0,0,s*2.6,0,TAU);ctx.fill();ctx.fillStyle='#5fd65a';ctx.beginPath();ctx.ellipse(0,0,s*1.15,s*.8,fd.ph*.6,0,TAU);ctx.fill();ctx.fillStyle='#c9ffb8';ctx.beginPath();ctx.arc(-s*.3,-s*.25,s*.35,0,TAU);ctx.fill();break;
     case 'clump':ctx.fillStyle='rgba(140,255,120,.14)';ctx.beginPath();ctx.arc(0,0,s*2.1,0,TAU);ctx.fill();for(let i=0;i<5;i++){const a=i*1.26+fd.ph*.2;ctx.fillStyle=i%2?'#4cbf55':'#6fdc6a';ctx.beginPath();ctx.arc(Math.cos(a)*s*.55,Math.sin(a)*s*.45,s*.6,0,TAU);ctx.fill()}ctx.fillStyle='rgba(220,255,200,.6)';ctx.beginPath();ctx.arc(-s*.3,-s*.35,s*.25,0,TAU);ctx.fill();break;

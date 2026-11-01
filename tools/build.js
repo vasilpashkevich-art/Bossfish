@@ -4,8 +4,7 @@ const fs=require('fs'),path=require('path');
 const root=path.join(__dirname,'..');
 const src=fs.readFileSync(path.join(root,'src','game.html'),'utf8');
 const cut=src.indexOf('</style>')+'</style>'.length;
-const head=src.slice(0,cut),body=src.slice(cut);
-const out=`<!doctype html>
+function page(head,body){return `<!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
@@ -25,6 +24,16 @@ ${head}
 ${body}
 </body>
 </html>
-`;
+`}
+const head=src.slice(0,cut),body=src.slice(cut);
+const out=page(head,body);
 fs.writeFileSync(path.join(root,'index.html'),out);
 console.log('index.html собран:',out.length,'байт');
+// 3D-бета: та же игра + Three.js и модуль src/r3d.js на месте метки
+const r3d=fs.readFileSync(path.join(root,'src','r3d.js'),'utf8');
+const THREE_SRC='<script>window.__R3D=1</script>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n';
+const body3=body.replace('/*@R3D@*/',r3d).replace('<script>',THREE_SRC+'<script>');
+const head3=head.replace(/<title>([^<]*)<\/title>/,'<title>$1 3D</title>');
+fs.writeFileSync(path.join(root,'3d.html'),page(head3,body3));
+fs.mkdirSync(path.join(root,'dist'),{recursive:true});fs.writeFileSync(path.join(root,'dist','game3d.html'),head3+body3);
+console.log('3d.html собран:',page(head3,body3).length,'байт');
