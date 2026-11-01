@@ -56,6 +56,12 @@ button{touch-action:manipulation}
 #board li span:first-child{color:var(--mist);width:18px}
 #board li.me{background:rgba(255,199,90,.18);color:var(--amber)}
 #board li.gap{color:var(--mist);justify-content:center;padding:0}
+#rotate{display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 40%,#0b3452,#03172a);flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:30px;font-size:15px;color:var(--mist)}
+#rotate b{font-size:24px;color:var(--foam)}
+#rotate .rph{width:46px;height:78px;border:4px solid #ffc75a;border-radius:10px;margin-bottom:14px;position:relative;animation:rph 2.4s ease-in-out infinite}
+#rotate .rph:after{content:'';position:absolute;left:50%;bottom:5px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#ffc75a}
+@keyframes rph{0%,25%{transform:rotate(0)}55%,85%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+@media (orientation:portrait){body.touch #rotate{display:flex}}
 #feed{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
 #feed div{font-size:13px;background:rgba(3,23,42,.55);padding:3px 10px;border-radius:20px;color:var(--mist);transition:opacity .6s}
 #feed div b{color:var(--foam);font-weight:500}
@@ -209,7 +215,6 @@ body.touch #feed{top:calc(8px + env(safe-area-inset-top,0px));max-width:calc(100
 .menu button{width:min(300px,100%);box-sizing:border-box}
 .menu button small{display:block;font:500 12px var(--body);color:inherit;opacity:.75;margin-top:3px;letter-spacing:0}
 .btn2{background:rgba(255,255,255,.06);color:var(--foam);box-shadow:none;border:1px solid var(--line)}
-#netNote{font-size:13px;color:var(--amber);background:rgba(255,199,90,.1);border:1px solid rgba(255,199,90,.3);border-radius:10px;padding:8px 12px}
 #pause{z-index:18}
 #pause .card{background:rgba(5,28,48,.94);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:380px}
 
@@ -256,6 +261,7 @@ body[data-lang="en"] .ru,body:not([data-lang="en"]) .en{display:none!important}
 
 <div id="board" class="panel" hidden><h3><span class="ru">Самые крупные</span><span class="en">Biggest fish</span></h3><ol id="top"></ol></div>
 <div id="feed"></div>
+<div id="rotate"><div class="rph"></div><b><span class="ru">Поверните телефон</span><span class="en">Rotate your phone</span></b><span class="ru">В игру играют только в горизонтальном положении</span><span class="en">The game is played in landscape only</span></div>
 <div id="tip" class="panel"></div>
 <div id="abil" hidden></div>
 <div id="evban" hidden><div class="ic" id="evIc"></div><div class="tx"><b id="evTi"></b><span id="evSu"></span><div class="bar"><i id="evBar"></i></div></div></div>
@@ -289,12 +295,10 @@ body[data-lang="en"] .ru,body:not([data-lang="en"]) .en{display:none!important}
       <button id="cont" hidden><span class="ru">Продолжить</span><span class="en">Continue</span><small id="contInfo"></small></button>
       <button id="go"></button>
       <button id="shopBtn" class="btn2"><span class="ru">Магазин скинов</span><span class="en">Skin shop</span></button>
-      <button id="net" class="btn2"><span class="ru">Сетевая игра</span><span class="en">Online game</span></button>
-      <div id="netNote" hidden><span class="ru">Сетевая игра в разработке. Скоро можно будет плавать вместе с друзьями.</span><span class="en">Online mode is in development. Soon you will be able to swim with friends.</span></div>
       <button id="helpStart" class="helpline"><span class="ru">Как играть</span><span class="en">How to play</span></button>
     </div>
     <div class="muted deskonly"><span class="ru">Мышь или стрелки — плыть · Пробел или щелчок — рывок · Esc — пауза · H — подсказки</span><span class="en">Mouse or arrows — swim · Space or click — dash · Esc — pause · H — help</span></div>
-    <div class="muted touchonly"><span class="ru">Палец слева — джойстик · большая кнопка справа — рывок · «?» — подсказки. Удобнее держать телефон горизонтально.</span><span class="en">Finger on the left — joystick · big button on the right — dash · “?” — help. Landscape works best.</span></div>
+    <div class="muted touchonly"><span class="ru">Палец слева — джойстик · большая кнопка справа — рывок · «?» — подсказки.</span><span class="en">Finger on the left — joystick · big button on the right — dash · “?” — help.</span></div>
     <div class="muted" id="recline"></div>
   </div>
 </div>
@@ -340,7 +344,6 @@ body[data-lang="en"] .ru,body:not([data-lang="en"]) .en{display:none!important}
           <li><b>Торпеда, разряд, чернила:</b> маленькие кнопки над рывком, появляются после нужной эволюции. Там же кнопка пузыря-усилителя, когда он у вас есть.</li>
           <li><b>Эволюция:</b> нажмите на карточку.</li>
           <li><b>Пауза:</b> кнопка с двумя полосками вверху. Оттуда можно выйти в меню — игра сохранится.</li>
-          <li>Горизонтально держать удобнее: видно больше моря.</li>
         </ul>
         <ul class="en">
           <li><b>Swim:</b> put a finger anywhere and drag — a joystick appears. The further you drag, the faster the fish swims.</li>
@@ -348,7 +351,6 @@ body[data-lang="en"] .ru,body:not([data-lang="en"]) .en{display:none!important}
           <li><b>Torpedo, shock, ink:</b> small buttons above the dash; they appear once you have the matching evolution. The power bubble button shows up there too when you hold one.</li>
           <li><b>Evolution:</b> tap a card.</li>
           <li><b>Pause:</b> the button with two bars at the top. From there you can quit to the menu — the game is saved.</li>
-          <li>Landscape works best: you see more of the sea.</li>
         </ul>
       </section>
       <section class="deskonly">
@@ -547,6 +549,17 @@ const cv=$('c'),mini=$('mini'),mctx=mini.getContext('2d');let ctx=cv.getContext(
 let cw=0,ch=0,dpr=1;const R3D=typeof window!=='undefined'&&!!window.__R3D&&typeof THREE!=='undefined';
 let isTouch=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
 function setTouch(v){isTouch=v;document.body.classList.toggle('touch',v)}setTouch(isTouch);
+const isPortrait=()=>innerHeight>innerWidth;
+// ── счётчик игроков (Яндекс Метрика). Пока METRIKA=0 — ничего никуда не отправляется.
+const METRIKA=0;
+const AN=(()=>{let st={first:0,last:'',visits:0,days:0,games:0};try{Object.assign(st,JSON.parse(localStorage.getItem('malek-an')||'{}'))}catch(e){}
+  const today=new Date().toISOString().slice(0,10),ret=!!st.last&&st.last!==today;if(st.last!==today){st.days++;st.last=today}st.visits++;if(!st.first)st.first=Date.now();
+  const save=()=>{try{localStorage.setItem('malek-an',JSON.stringify(st))}catch(e){}};save();
+  const on=METRIKA>0&&typeof location!=='undefined'&&/^https?:/.test(location.protocol)&&!/debug/.test(location.search+location.hash);
+  if(on){try{(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();k=e.createElement(t);a=e.getElementsByTagName(t)[0];k.async=1;k.src=r;a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js','ym');
+    ym(METRIKA,'init',{clickmap:false,trackLinks:false,accurateTrackBounce:true,params:{returning:ret,days:st.days,touch:isTouch}})}catch(e){}}
+  const t=(goal,params)=>{if(!on)return;try{ym(METRIKA,'reachGoal',goal,Object.assign({days:st.days,games:st.games},params||{}))}catch(e){}};
+  return {t,start(kind){st.games++;save();t(kind,{returning:ret})},get st(){return st}}})();
 // ───────── качество графики: авто / высокое / низкое ─────────
 let QPREF='auto';try{const v=localStorage.getItem('malek-quality');if(['auto','high','low'].includes(v))QPREF=v}catch(e){}
 let LOW=QPREF==='low',fpsAvg=60,lowT=0,highT=0;
@@ -747,7 +760,7 @@ function maxSpeed(f){return 200*Math.pow(f.r/8,0.32)*(f.pw&&f.pw.speed>0?1.45:1)
 
 function gain(f,x){const top=f.bot?botCap():MAXL;f.xp+=x;while(f.L<top&&f.xp>=need(f.L)){f.xp-=need(f.L);f.L++;onLevel(f)}if(f.L>=top)f.xp=Math.min(f.xp,need(f.L)*0.999)}
 function lose(f,x){f.xp-=x;while(f.xp<0){if(f.L>1){f.L--;f.xp+=need(f.L)}else{f.xp=0;return true}}return false}
-function onLevel(f){const ms=f.L%5===0&&f.L<=45;
+function onLevel(f){const ms=f.L%5===0&&f.L<=45;if(f===player&&!f.bot&&[3,5,10,15,20,30,40,50].includes(f.L))AN.t('lvl'+f.L);
   if(f===player&&!f.bot){S.level();pop(f.x,f.y-f.r*1.6,L('Уровень ','Level ')+f.L,'#bff3ff',18);
     if(f.L===4){if(ty(f)==='h')tip(L('Выросли шипы: хищнику теперь нужно быть в 1,4 раза крупнее, чтобы вас проглотить','Spikes grew: a predator now has to be 1.4 times bigger to swallow you'));else if(ty(f)==='c')tip(L('Хищнику доступен рывок: пробел или щелчок мышью','Predators can dash: Space or mouse click'))}
     if(f.L===16)tip(L('Теперь по силам медузы и водорослевые шары — ищите их','Jellyfish and algae balls are now on the menu — look for them'));if(f.L===22)tip(L('Вы доросли до кальмаров и саргассовых плотов у поверхности. Но там бывают сети','You can now eat squid and sargassum rafts near the surface. But nets drop there'));
@@ -1231,7 +1244,7 @@ function showTip(t){$('tip').textContent=t;$('tip').classList.add('on');tipT=5.5
 function typeTip(t){if(t==='h')tip(L('Вы стали травоядной: растения дают больше роста, рыб есть нельзя. С 4 уровня — шипы','You are now a herbivore: plants give more growth, you can’t eat fish. Spikes from level 4'));
   else if(t==='o')tip(L('Вы всеядная: можно глотать рыб, которые меньше вас в 1,2 раза','You are an omnivore: you can swallow fish 1.2 times smaller than you'));
   else tip(L('Вы хищник: рыбы и жучки дают больше роста, растения — меньше. Голод слабее, с 4 уровня — рывок','You are a predator: fish and bugs give more growth, plants less. Slower hunger, dash from level 4'))}
-function feedMsg(h){const d=document.createElement('div');d.innerHTML=h;const fe=$('feed');fe.appendChild(d);while(fe.children.length>4)fe.removeChild(fe.firstChild);setTimeout(()=>{d.style.opacity='0'},4200);setTimeout(()=>d.remove(),4900)}
+function feedMsg(h){if(state==='menu')return;const d=document.createElement('div');d.innerHTML=h;const fe=$('feed');fe.appendChild(d);while(fe.children.length>4)fe.removeChild(fe.firstChild);setTimeout(()=>{d.style.opacity='0'},4200);setTimeout(()=>d.remove(),4900)}
 
 // ───────── рекорды ─────────
 let rec={L:0,t:0};try{rec=Object.assign(rec,JSON.parse(localStorage.getItem('malek-rec')||'{}'))}catch(e){}
@@ -1251,11 +1264,11 @@ function startGame(){
   let best=null,bs=-1;for(const sh of shelters){if(sh.gap>24||sh.float)continue;let dmin=1e9;for(const f of fish)if(f.alive&&ty(f)!=='h'&&f.L>1)dmin=Math.min(dmin,Math.hypot(f.x-sh.x,f.y-sh.cy));if(dmin>bs){bs=dmin;best=[sh.x+rand(-sh.A*.3,sh.A*.3),sh.cy]}}
   if(nemesis&&nemesis.bot){const c=fish.filter(f=>f.L>=4&&f.L<=Math.max(8,Math.min(nemesis.L,16))&&Math.hypot(f.x-best[0],f.y-best[1])>1500);const t=c[Math.random()*c.length|0];if(t){t.name=nemesis.name;t.skin=nemesis.skin;t.hue=nemesis.hue;t.nemesis=true}}nemesis=null;
   player=mkFish({name:nm,x:best[0],y:best[1],L:1,protect:8});player.skin=wallet.skin;toggleHelp(false);wasKing=false;joy.on=false;
-  if(isTouch){try{const de=document.documentElement;if(!document.fullscreenElement&&de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'}).catch(()=>{})}catch(e){}}player.hueOff=0;fish.push(player);spect=null;maxL=1;
-  clearSave();evReset();enterPlay();tutStart();
+  if(isTouch){try{const de=document.documentElement;if(!document.fullscreenElement&&de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'}).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}player.hueOff=0;fish.push(player);spect=null;maxL=1;
+  clearSave();evReset();enterPlay();tutStart();AN.start('game_start');
   if(!TUT)setTimeout(()=>tip(isTouch?L('Ведите пальцем по экрану — это джойстик. Ешьте зелёное и красное: что едите чаще, тем и станете','Drag your finger — that’s the joystick. Eat green and red: what you eat most is what you become'):L('Ешьте зелёные водоросли и красных жучков. Что едите чаще — тем и станете. Справка — кнопка «?» или H','Eat green algae and red bugs. What you eat most is what you become. Help — the “?” button or H')),600)}
 function playerDie(by,cause){if(TUT)TUT.tg=null;clearSave();state='dying';deadT=0;spect=by&&by.alive?by:null;closeEvo();
-  const life=now-player.born;deathInfo={by:by?by.name:null,byL:by?by.L:0,cause,L:maxL,t:life,kills:player.kills,place:player.bestPlace,prevRec:rec.L};
+  const life=now-player.born;AN.t('death',{lvl:maxL,sec:Math.round(life),cause:cause||'eaten'});deathInfo={by:by?by.name:null,byL:by?by.L:0,cause,L:maxL,t:life,kills:player.kills,place:player.bestPlace,prevRec:rec.L};
   if(by){const dx=by.x-player.x,dy=by.y-player.y,d=Math.hypot(dx,dy)||1,c=(Math.cos(player.ang)*dx+Math.sin(player.ang)*dy)/d;deathInfo.side=c<-.35?'back':c>.35?'front':'side';
     killerSnap=Object.assign({},by,{evo:Object.assign({},by.evo),pw:{shield:0,speed:0,invis:0,magnet:0},cd:Object.assign({},by.cd),attached:null,hidden:false,protect:0,wind:0,poison:0,flash:0,stun:0,still:0,ang:0,roll:1,rollT:1,bend:0,jaw:.6,lookX:1,lookY:0,swim:.5});
     nemesis={name:by.name,L:by.L,skin:by.skin||'none',hue:by.hue,bot:!!by.bot}}else{killerSnap=null}
@@ -1309,7 +1322,7 @@ const prevFish={};
 function openShop(){S.init();shopOpen=true;renderShop();$('shop').hidden=false;syncPause()}
 function closeShop(){shopOpen=false;$('shop').hidden=true;syncPause();updMenu()}
 $('shopBtn').onclick=openShop;$('deadShop').onclick=openShop;$('shopClose').onclick=closeShop;$('shop').addEventListener('click',e=>{if(e.target.id==='shop')closeShop()});$('cont').onclick=()=>continueGame();
-$('net').onclick=()=>{$('netNote').hidden=!$('netNote').hidden};
+
 $('pauseBtn').onclick=()=>togglePause(true);$('pResume').onclick=()=>togglePause(false);$('pHelp').onclick=()=>toggleHelp(true);$('pExit').onclick=()=>exitToMenu();
 
 // ───────── сохранение одиночной игры ─────────
@@ -1323,20 +1336,21 @@ function restoreFish(o){const f=mkFish({name:o.name,bot:o.bot,x:o.x,y:o.y,L:1});
 function updMenu(){$('menuCoins').textContent=wallet.coins;const d=loadSave();$('cont').hidden=!d;$('go').textContent=d?L('Новая игра','New game'):L('Одиночная игра','Single player');$('go').classList.toggle('btn2',!!d);
   if(d){const m=d.p.meat/(d.p.meat+d.p.herb),t=m<.36?'h':m>.64?'c':'o',ago=Math.max(0,Math.round((Date.now()-d.t)/60000));
     $('contInfo').textContent=`${d.p.name} · ${L('ур.','lv.')} ${d.p.L} · ${TYPEN[t]} · ${ago<1?L('только что','just now'):ago<60?ago+L(' мин назад',' min ago'):ago<1440?Math.round(ago/60)+L(' ч назад',' h ago'):Math.round(ago/1440)+L(' дн назад',' d ago')}`}}
-function continueGame(){const d=loadSave();if(!d){startGame();return}evReset();evNext=now+120;
+function continueGame(){const d=loadSave();if(!d){startGame();return}AN.start('game_continue');evReset();evNext=now+120;
   fish.length=0;respawnQ.length=0;shots.length=0;clouds.length=0;
   for(const o of d.bots||[])fish.push(restoreFish(o));
   player=restoreFish(d.p);player.bot=false;player.skin=wallet.skin;player.protect=3;player.born=now-(d.played||0);player.bestPlace=d.best||99;fish.push(player);
   while(fish.length<BOTS+1)spawnBot(botLevel(true));
   {const cap=botCap();for(const f of fish)if(f.bot&&f.L>cap){f.L=cap;f.xp=0;f.r=baseR(cap)}}
   maxL=Math.max(d.maxL||1,player.L);toggleHelp(false);wasKing=false;joy.on=false;spect=null;
-  if(isTouch){try{const de=document.documentElement;if(!document.fullscreenElement&&de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'}).catch(()=>{})}catch(e){}}
+  if(isTouch){try{const de=document.documentElement;if(!document.fullscreenElement&&de.requestFullscreen)de.requestFullscreen({navigationUI:'hide'}).then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
   enterPlay();updChips();setTimeout(()=>tip(L('С возвращением! Первые 3 секунды вас нельзя съесть','Welcome back! You can’t be eaten for the first 3 seconds'),true),400)}
-function enterPlay(){state='play';$('start').hidden=true;$('dead').hidden=true;$('pause').hidden=true;$('netNote').hidden=true;syncPause();
+function enterPlay(){state='play';$('start').hidden=true;$('dead').hidden=true;$('pause').hidden=true;syncPause();
   ['hud','board','minibox','keys','helpBtn','pauseBtn','sndBtn'].forEach(i=>$(i).hidden=false);evoQueue.length=0;closeEvo();cam.x=player.x;cam.y=player.y;saveT=10}
 function exitToMenu(){saveGame();const i=fish.indexOf(player);if(i>=0)fish.splice(i,1);player=null;state='menu';spect=null;
   ['hud','board','minibox','keys','abil','helpBtn','pauseBtn','sndBtn','tbtns','pause'].forEach(i=>$(i).hidden=true);joy.on=false;closeEvo();syncPause();
   updMenu();recLine();tipQ.length=0;tipT=0;$('tip').classList.remove('on');$('start').hidden=false;setTimeout(()=>$('cont').focus(),30)}
+addEventListener('resize',()=>{if(isTouch&&isPortrait()&&state==='play'&&$('pause').hidden&&$('help').hidden){saveGame();togglePause(true)}});
 addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play'){saveGame();if($('pause').hidden&&$('help').hidden)togglePause(true)}});
 addEventListener('pagehide',()=>saveGame());
 updMenu();
@@ -1955,7 +1969,7 @@ function drawParticles(){for(const b of bubbles){if(b.x<vx0||b.x>vx1||b.y<vy0||b
   for(const p of parts){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.fill()}ctx.globalAlpha=1;
   ctx.fillStyle='rgba(220,245,255,.35)';if(!LOW)for(const s of snow){s.x+=Math.sin(now*.3+s.p)*.15;s.y+=.12;if(s.x<vx0||s.x>vx1||s.y<vy0||s.y>vy1){s.x=rand(vx0,vx1);s.y=rand(vy0,vy1)}ctx.beginPath();ctx.arc(s.x,s.y,s.r/cam.z,0,TAU);ctx.fill()}}
 for(let i=0;i<(isTouch?60:110);i++)snow.push({x:rand(0,W),y:rand(0,H),r:rand(.6,1.8),p:rand(0,TAU)});
-function drawLabels(vis){if(DBG.nolabels)return;ctx.textAlign='center';ctx.textBaseline='bottom';let leader=null;for(const f of fish)if(f.alive&&(!leader||total(f)>total(leader)))leader=f;
+function drawLabels(vis){if(DBG.nolabels||state==='menu')return;ctx.textAlign='center';ctx.textBaseline='bottom';let leader=null;for(const f of fish)if(f.alive&&(!leader||total(f)>total(leader)))leader=f;
   for(const f of vis){if(f!==player&&f.hidden&&!(player&&player.evo.eyes&&Math.hypot(f.x-player.x,f.y-player.y)<450))continue;if(!inLight(f))continue;
     const X=sx(f.x),Y=sy(f.y-f.r*1.15)-4;if(X<-50||X>cw+50||Y<-30||Y>ch+40)continue;const fs=clamp(f.r*cam.z*.42,10,16);ctx.font=`600 ${fs}px Rubik, system-ui, sans-serif`;
     let col='rgba(233,251,255,.9)';if(player&&player.alive&&f!==player){if(tooSmall(player,f))col='rgba(160,172,182,.6)';else if(threatTo(f,player))col='#ff8a75';else if(ty(player)!=='h'&&player.r>=f.r*eatRatio(player,f))col=(f.shelter&&player.r>f.shelter.gap)||f.protect>0||f.attached?'rgba(170,185,195,.8)':'#9dff9a'}if(f===player)col='#ffd27a';
@@ -1995,7 +2009,7 @@ function drawThreats(){if(state!=='play'||!player||!player.alive)return;const P=
     const ex=px+c*t,ey=py+s2*t,al=clamp(1.2-d/2600,.35,1)*(.75+.25*Math.sin(now*8));ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.globalAlpha=al;
     ctx.fillStyle='#ff6b57';ctx.strokeStyle='rgba(40,0,0,.6)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-10,-12);ctx.lineTo(-4,0);ctx.lineTo(-10,12);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
   ctx.globalAlpha=1}
-function drawPops(){if(DBG.nolabels)return;ctx.textAlign='center';ctx.textBaseline='middle';for(const p of pops){ctx.globalAlpha=Math.min(1,p.life*1.5);ctx.font=`700 ${p.s}px Rubik, system-ui, sans-serif`;const X=sx(p.x),Y=sy(p.y);ctx.lineWidth=3;ctx.strokeStyle='rgba(2,16,30,.6)';ctx.strokeText(p.txt,X,Y);ctx.fillStyle=p.c;ctx.fillText(p.txt,X,Y)}ctx.globalAlpha=1}
+function drawPops(){if(DBG.nolabels||state==='menu')return;ctx.textAlign='center';ctx.textBaseline='middle';for(const p of pops){ctx.globalAlpha=Math.min(1,p.life*1.5);ctx.font=`700 ${p.s}px Rubik, system-ui, sans-serif`;const X=sx(p.x),Y=sy(p.y);ctx.lineWidth=3;ctx.strokeStyle='rgba(2,16,30,.6)';ctx.strokeText(p.txt,X,Y);ctx.fillStyle=p.c;ctx.fillText(p.txt,X,Y)}ctx.globalAlpha=1}
 function drawMini(){const w=mini.width,h=mini.height,kx=w/W,ky=h/H;mctx.clearRect(0,0,w,h);const g=mctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#1f87ad');g.addColorStop(1,'#06223e');mctx.fillStyle=g;mctx.fillRect(0,0,w,h);
   mctx.fillStyle='#6f6550';mctx.beginPath();mctx.moveTo(0,h);for(let x=0;x<=W;x+=150)mctx.lineTo(x*kx,ground(x)*ky);mctx.lineTo(w,h);mctx.fill();
   mctx.fillStyle='rgba(200,170,140,.7)';for(const p of props){mctx.save();mctx.fillStyle=p.t==='ship'||p.t==='log'?'rgba(150,110,70,.75)':'rgba(140,150,155,.75)';if(p.t==='log'){mctx.fillRect((p.x-p.hl)*kx,(p.cy-20)*ky,Math.max(2,p.hl*2*kx),Math.max(1.5,40*ky))}else if(p.t==='ship'){mctx.translate(p.bx*kx,p.by*ky);mctx.beginPath();mctx.moveTo(0,0);mctx.lineTo(Math.cos(p.a)*p.sd*p.L*kx,Math.sin(p.a)*p.L*ky);mctx.lineWidth=Math.max(2,p.Hh*1.4*kx);mctx.strokeStyle=mctx.fillStyle;mctx.stroke()}else{mctx.beginPath();mctx.moveTo((p.x-p.bw)*kx,p.g*ky);mctx.lineTo(p.x*kx,p.top*ky);mctx.lineTo((p.x+p.bw)*kx,p.g*ky);mctx.fill()}mctx.restore()}
