@@ -16,7 +16,7 @@ function page(head,body){return `<!doctype html>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="description" content="Малёк — подводная браузерная игра: вырасти из малька в хозяина глубин.">
+<meta name="description" content="Bossfish — подводная браузерная игра: вырасти из малька в хозяина глубин.">
 ${head}
 <style>html,body{margin:0;padding:0}</style>
 </head>
